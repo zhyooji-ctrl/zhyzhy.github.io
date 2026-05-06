@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
+            --text: #e0e0e0;
+            --accent: #4ade80;
+            --danger: #f87171;
+            --border: #2a2a2a;
+            --input-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+
+        /* Task Input Section */
+        .add-task-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-task-section input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .add-task-section input:focus {
+            border-color: var(--accent);
+        }
+
+        .add-task-section input::placeholder {
+            color: #666;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: -0.2px;
+        }
+
+        .btn-add {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-add:hover {
+            background: #22c55e;
+            transform: scale(1.02);
+        }
+
+        .btn-delete {
+            background: transparent;
+            color: var(--danger);
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+        }
+
+        .btn-delete:hover {
+            border-color: var(--danger);
+            background: rgba(248, 113, 113, 0.1);
+        }
+
+        /* Task List */
+        .task-list {
+            list-style: none;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: var(--input-bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .task-item:hover {
+            background: #2d2d2d;
+        }
+
+        .task-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-text {
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .task-text.done {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-box.total .stat-number {
+            color: #60a5fa;
+        }
+
+        .stat-box.done .stat-number {
+            color: var(--accent);
+        }
+
+        .stat-box.pending .stat-number {
+            color: #fbbf24;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* Apple Music Widget */
+        .music-card iframe {
+            border-radius: 12px;
+            width: 100%;
+            height: 450px;
+            border: none;
+        }
+
+        .music-card {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .music-card {
+                grid-column: 1;
+            }
+
+            .music-card iframe {
+                height: 350px;
+            }
+        }
+
+        .apple-music-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .apple-music-input input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .apple-music-input input:focus {
+            border-color: #fa586a;
+        }
+
+        .hint-text {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #555;
+            padding: 40px 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Add Task Card -->
+        <div class="card">
+            <h2>➕ Add New Task</h2>
+            <div class="add-task-section">
+                <input type="text" id="taskInput" placeholder="What needs to be done?"
+                    onkeydown="handleKeyPress(event)">
+                <button class="btn btn-add" onclick="addTask()">Add</button>
+            </div>
+            <ul class="task-list" id="taskList"></ul>
+        </div>
+
+        <!-- Stats & Chart Card -->
+        <div class="card">
+            <h2>📊 Dashboard</h2>
+            <div class="stats-row">
+                <div class="stat-box total">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-box done">
+                    <div class="stat-number" id="doneTasks">0</div>
+                    <div class="stat-label">Done</div>
+                </div>
+                <div class="stat-box pending">
+                    <div class="stat-number" id="pendingTasks">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Apple Music Card -->
+        <div class="card music-card">
+            <h2>🎵 Apple Music</h2>
+            <div class="apple-music-input">
+                <input type="text" id="musicUrl" placeholder="Paste Apple Music share link...">
+                <button class="btn btn-add" style="background:#fa586a;color:#fff;" onclick="updateMusic()">Load</button>
+            </div>
+            <p class="hint-text">
+                💡 Open Apple Music → Share a song/playlist → Copy Link → Paste here.<br>
+                Default: chill Lo-Fi playlist to focus.
+            </p>
+            <div id="musicContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Load tasks from localStorage
+        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+
+        // Default Apple Music - chill Lo-Fi
+        const defaultMusicUrl = 'https://embed.music.apple.com/us/playlist/lofi-chill/pl.u-8aAVXpWFNRGdB0';
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            tasks.push({ id: Date.now(), text: text, done: false });
+            input.value = '';
+            saveTasks();
+            render();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') addTask();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                saveTasks();
+                render();
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            render();
+        }
+
+        function renderTaskList() {
+            const list = document.getElementById('taskList');
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="empty-state">No tasks yet. Add one above! 🚀</div>';
+                return;
+            }
+            list.innerHTML = tasks.map(task => `
+                <li class="task-item">
+                    <div class="task-left">
+                        <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} 
+                               onchange="toggleTask(${task.id})">
+                        <span class="task-text ${task.done ? 'done' : ''}">${escapeHtml(task.text)}</span>
+                    </div>
+                    <button class="btn btn-delete" onclick="deleteTask(${task.id})">✕</button>
+                </li>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderStats() {
+            const total = tasks.length;
+            const done = tasks.filter(t => t.done).length;
+            const pending = total - done;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('doneTasks').textContent = done;
+            document.getElementById('pendingTasks').textContent = pending;
+
+            // Pie Chart
+            const ctx = document.getElementById('pieChart').getContext('2d');
+
+            // Destroy previous chart instance
+            if (window.myPieChart) window.myPieChart.destroy();
+
+            window.myPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Pending'],
+                    datasets: [{
+                        data: [done, pending],
+                        backgroundColor: ['#4ade80', '#fbbf24'],
+                        borderColor: ['#1a1a1a', '#1a1a1a'],
+                        borderWidth: 3,
+                        hoverBorderColor: ['#4ade80', '#fbbf24'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e0e0e0',
+                                padding: 20,
+                                font: { size: 13 },
+                                usePointStyle: true,
+                                pointStyleWidth: 10,
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#2a2a2a',
+                            titleColor: '#fff',
+                            bodyColor: '#ccc',
+                            borderColor: '#444',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                        }
+                    },
+                    cutout: '65%',
+                }
+            });
+        }
+
+        // Apple Music Embed
+        function getMusicEmbedUrl(url) {
+            if (!url || url.trim() === '') return defaultMusicUrl;
+            // If it's already an embed URL, return as-is
+            if (url.includes('embed.music.apple.com')) return url;
+            // Convert share link to embed
+            // Example: https://music.apple.com/us/playlist/... -> https://embed.music.apple.com/us/playlist/...
+            return url.replace('music.apple.com', 'embed.music.apple.com').split('?')[0];
+        }
+
+        function updateMusic() {
+            const urlInput = document.getElementById('musicUrl');
+            const rawUrl = urlInput.value.trim();
+            const embedUrl = getMusicEmbedUrl(rawUrl);
+            localStorage.setItem('musicEmbedUrl', embedUrl);
+            renderMusic(embedUrl);
+        }
+
+        function renderMusic(embedUrl) {
+            const container = document.getElementById('musicContainer');
+            container.innerHTML = `
+                <iframe 
+                    allow="autoplay *; encrypted-media *; fullscreen *" 
+                    frameborder="0" 
+                    height="450" 
+                    style="width:100%;max-width:660px;overflow:hidden;background:transparent;border-radius:12px;" 
+                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
+                    src="${embedUrl}">
+                </iframe>
+            `;
+        }
+
+        function render() {
+            renderTaskList();
+            renderStats();
+        }
+
+        // Initial render
+        render();
+        const savedMusicUrl = localStorage.getItem('musicEmbedUrl') || defaultMusicUrl;
+        renderMusic(savedMusicUrl);
+        if (savedMusicUrl !== defaultMusicUrl) {
+            document.getElementById('musicUrl').value = savedMusicUrl;
+        }
+    </script>
+</body>
+
+</html>
