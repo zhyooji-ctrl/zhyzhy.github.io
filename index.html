@@ -1,507 +1,984 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Dashboard</title>
+    <title>Flow • Task Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #0f0f0f;
-            --card: #1a1a1a;
-            --text: #e0e0e0;
-            --accent: #4ade80;
-            --danger: #f87171;
-            --border: #2a2a2a;
-            --input-bg: #252525;
+            --bg: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.72);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #0071e3;
+            --accent-hover: #0077ed;
+            --green: #34c759;
+            --red: #ff3b30;
+            --orange: #ff9500;
+            --yellow: #ffcc00;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow: 0 4px 20px rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.08);
+            --radius-sm: 16px;
+            --radius: 22px;
+            --radius-lg: 28px;
+            --radius-xl: 32px;
+            --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .dark {
+            --bg: #1c1c1e;
+            --card-bg: rgba(44, 44, 46, 0.82);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text: #f5f5f7;
+            --text-secondary: #98989d;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.4);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--font);
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
             padding: 24px;
+            transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-font-smoothing: antialiased;
         }
 
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #fff;
-            letter-spacing: -0.3px;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        /* Task Input Section */
-        .add-task-section {
+        /* Header */
+        .header {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            padding: 0 4px;
         }
 
-        .add-task-section input {
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            width: 52px;
+            height: 28px;
+            background: rgba(120, 120, 128, 0.2);
+            border-radius: 28px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .dark .theme-toggle::after {
+            transform: translateX(24px);
+            background: #1c1c1e;
+        }
+
+        .theme-icon {
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 18px;
+        }
+
+        @media (max-width: 1100px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 700px) {
+            .grid { grid-template-columns: 1fr; }
+            body { padding: 14px; }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* Task Input */
+        .task-input-wrap {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .task-input-wrap input {
             flex: 1;
             padding: 12px 16px;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 0.95rem;
+            background: rgba(128, 128, 128, 0.06);
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 0.9rem;
+            color: var(--text);
             outline: none;
-            transition: border 0.2s;
+            transition: all 0.25s;
         }
 
-        .add-task-section input:focus {
+        .task-input-wrap input:focus {
             border-color: var(--accent);
+            background: rgba(128, 128, 128, 0.04);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
         }
 
-        .add-task-section input::placeholder {
-            color: #666;
-        }
+        .task-input-wrap input::placeholder { color: var(--text-secondary); }
 
         .btn {
-            padding: 12px 20px;
+            padding: 12px 18px;
+            border-radius: var(--radius-sm);
             border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            font-family: var(--font);
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s;
             letter-spacing: -0.2px;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
 
-        .btn-add {
+        .btn-primary {
             background: var(--accent);
-            color: #000;
+            color: #fff;
         }
-
-        .btn-add:hover {
-            background: #22c55e;
-            transform: scale(1.02);
-        }
-
-        .btn-delete {
+        .btn-primary:hover { background: var(--accent-hover); transform: scale(1.03); }
+        .btn-ghost {
             background: transparent;
-            color: var(--danger);
+            color: var(--accent);
             padding: 6px 10px;
             font-size: 0.8rem;
-            border: 1px solid transparent;
         }
-
-        .btn-delete:hover {
-            border-color: var(--danger);
-            background: rgba(248, 113, 113, 0.1);
+        .btn-ghost:hover { background: rgba(0,113,227,0.08); }
+        .btn-danger {
+            background: transparent;
+            color: var(--red);
+            padding: 6px 10px;
+            font-size: 0.8rem;
         }
+        .btn-danger:hover { background: rgba(255,59,48,0.08); }
 
         /* Task List */
         .task-list {
             list-style: none;
-            max-height: 350px;
             overflow-y: auto;
+            flex: 1;
+            max-height: 340px;
+            padding-right: 4px;
         }
 
-        .task-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .task-list::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
+        .task-list::-webkit-scrollbar { width: 3px; }
+        .task-list::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 3px; }
 
         .task-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 14px;
-            background: var(--input-bg);
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: background 0.2s;
-        }
-
-        .task-item:hover {
-            background: #2d2d2d;
-        }
-
-        .task-left {
-            display: flex;
-            align-items: center;
             gap: 12px;
-            flex: 1;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
         }
+
+        .task-item:hover { background: rgba(128,128,128,0.06); }
 
         .task-checkbox {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--accent);
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            border: 2px solid #c7c7cc;
+            appearance: none;
+            -webkit-appearance: none;
             cursor: pointer;
             flex-shrink: 0;
-        }
-
-        .task-text {
-            font-size: 0.95rem;
-            word-break: break-word;
-        }
-
-        .task-text.done {
-            text-decoration: line-through;
-            color: #666;
-        }
-
-        /* Stats */
-        .stats-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
-            flex: 1;
-            background: var(--input-bg);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -1px;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-box.total .stat-number {
-            color: #60a5fa;
-        }
-
-        .stat-box.done .stat-number {
-            color: var(--accent);
-        }
-
-        .stat-box.pending .stat-number {
-            color: #fbbf24;
-        }
-
-        /* Chart Container */
-        .chart-container {
+            transition: all 0.25s;
             position: relative;
-            height: 250px;
-            width: 100%;
+            background: transparent;
         }
 
-        /* Apple Music Widget */
-        .music-card iframe {
-            border-radius: 12px;
-            width: 100%;
-            height: 450px;
+        .dark .task-checkbox { border-color: #636366; }
+
+        .task-checkbox:checked {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .task-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .task-content { flex: 1; min-width: 0; }
+        .task-text { font-size: 0.9rem; word-break: break-word; transition: all 0.3s; }
+        .task-text.done { text-decoration: line-through; color: var(--text-secondary); opacity: 0.6; }
+        .task-date {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            cursor: pointer;
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .task-date:hover { background: rgba(128,128,128,0.1); }
+        .task-date.overdue { color: var(--red); font-weight: 600; }
+
+        /* Date picker inline */
+        .date-picker-mini {
+            background: transparent;
             border: none;
+            color: var(--text-secondary);
+            font-family: var(--font);
+            font-size: 0.72rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            outline: none;
         }
+        .date-picker-mini:focus { background: rgba(128,128,128,0.1); }
 
-        .music-card {
-            grid-column: 1 / -1;
-        }
-
-        @media (max-width: 768px) {
-            .music-card {
-                grid-column: 1;
-            }
-
-            .music-card iframe {
-                height: 350px;
-            }
-        }
-
-        .apple-music-input {
+        /* Stats Row */
+        .stats-row {
             display: flex;
             gap: 10px;
             margin-bottom: 16px;
         }
 
-        .apple-music-input input {
+        .stat-pill {
             flex: 1;
-            padding: 10px 14px;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            text-align: center;
+            padding: 14px 8px;
+            border-radius: var(--radius-sm);
+            background: rgba(128,128,128,0.04);
+            transition: all 0.3s;
+        }
+
+        .stat-pill .stat-num {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .stat-pill .stat-lbl {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+        .stat-pill.total .stat-num { color: var(--accent); }
+        .stat-pill.done .stat-num { color: var(--green); }
+        .stat-pill.overdue .stat-num { color: var(--red); }
+
+        /* Chart */
+        .chart-wrap {
+            flex: 1;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-wrap canvas { max-height: 100%; }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .cal-day-header {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            letter-spacing: 0.3px;
+        }
+
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .cal-day:hover { background: rgba(128,128,128,0.1); }
+        .cal-day.today {
+            background: var(--accent);
             color: #fff;
-            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .cal-day.has-task::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .cal-day.today.has-task::after { background: #fff; }
+        .cal-day.other-month { color: transparent; pointer-events: none; }
+
+        .cal-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .cal-month {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .cal-nav {
+            display: flex;
+            gap: 4px;
+        }
+        .cal-nav button {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(128,128,128,0.08);
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cal-nav button:hover { background: rgba(128,128,128,0.18); }
+
+        /* Music Widget */
+        .music-mini {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .music-mini.collapsed {
+            width: 52px;
+            height: 52px;
+        }
+        .music-mini.expanded {
+            width: 360px;
+            height: 420px;
+        }
+
+        .music-toggle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            z-index: 2;
+        }
+
+        .music-toggle:hover { transform: scale(1.08); }
+
+        .music-panel {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 360px;
+            background: var(--card-bg);
+            backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(50px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 18px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+        }
+
+        .music-mini.expanded .music-panel {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .music-panel iframe {
+            border-radius: var(--radius-sm);
+            width: 100%;
+            height: 320px;
+            border: none;
+        }
+        .music-url-input {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .music-url-input input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(128,128,128,0.06);
+            border: 1px solid transparent;
+            border-radius: 20px;
+            font-family: var(--font);
+            font-size: 0.75rem;
+            color: var(--text);
             outline: none;
         }
-
-        .apple-music-input input:focus {
-            border-color: #fa586a;
+        .music-url-input input:focus { border-color: var(--accent); }
+        .music-url-input button {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: none;
+            background: #fa586a;
+            color: #fff;
+            font-family: var(--font);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
         }
 
-        .hint-text {
-            font-size: 0.75rem;
-            color: #666;
+        /* Pomodoro */
+        .pomodoro-display {
+            text-align: center;
+            padding: 10px 0;
+        }
+        .pomo-time {
+            font-size: 3.5rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+        }
+        .pomo-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
             margin-top: 4px;
+        }
+        .pomo-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+        .pomo-btn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(128,128,128,0.06);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pomo-btn:hover { background: rgba(128,128,128,0.15); }
+        .pomo-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .pomo-sessions {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Span helpers */
+        .span-2 { grid-column: span 2; }
+        @media (max-width: 1100px) {
+            .span-2 { grid-column: span 1; }
         }
 
         .empty-state {
             text-align: center;
-            color: #555;
-            padding: 40px 20px;
-            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding: 30px;
+            font-size: 0.85rem;
         }
     </style>
 </head>
-
 <body>
-    <div class="dashboard">
-        <!-- Add Task Card -->
-        <div class="card">
-            <h2>➕ Add New Task</h2>
-            <div class="add-task-section">
-                <input type="text" id="taskInput" placeholder="What needs to be done?"
-                    onkeydown="handleKeyPress(event)">
-                <button class="btn btn-add" onclick="addTask()">Add</button>
-            </div>
-            <ul class="task-list" id="taskList"></ul>
-        </div>
-
-        <!-- Stats & Chart Card -->
-        <div class="card">
-            <h2>📊 Dashboard</h2>
-            <div class="stats-row">
-                <div class="stat-box total">
-                    <div class="stat-number" id="totalTasks">0</div>
-                    <div class="stat-label">Total</div>
-                </div>
-                <div class="stat-box done">
-                    <div class="stat-number" id="doneTasks">0</div>
-                    <div class="stat-label">Done</div>
-                </div>
-                <div class="stat-box pending">
-                    <div class="stat-number" id="pendingTasks">0</div>
-                    <div class="stat-label">Pending</div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="pieChart"></canvas>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Flow</h1>
+            <div class="header-actions">
+                <span class="theme-icon" id="themeIcon">🌤</span>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"></button>
             </div>
         </div>
 
-        <!-- Apple Music Card -->
-        <div class="card music-card">
-            <h2>🎵 Apple Music</h2>
-            <div class="apple-music-input">
-                <input type="text" id="musicUrl" placeholder="Paste Apple Music share link...">
-                <button class="btn btn-add" style="background:#fa586a;color:#fff;" onclick="updateMusic()">Load</button>
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Tasks Card -->
+            <div class="card span-2">
+                <div class="card-title">📋 Tasks</div>
+                <div class="task-input-wrap">
+                    <input type="text" id="taskInput" placeholder="Add a new task..." onkeydown="if(event.key==='Enter')addTask()">
+                    <button class="btn btn-primary" onclick="addTask()">Add</button>
+                </div>
+                <ul class="task-list" id="taskList"></ul>
             </div>
-            <p class="hint-text">
-                💡 Open Apple Music → Share a song/playlist → Copy Link → Paste here.<br>
-                Default: chill Lo-Fi playlist to focus.
-            </p>
+
+            <!-- Calendar Card -->
+            <div class="card">
+                <div class="card-title">📅 Calendar</div>
+                <div class="cal-header-row">
+                    <span class="cal-month" id="calMonth"></span>
+                    <div class="cal-nav">
+                        <button onclick="changeMonth(-1)">◀</button>
+                        <button onclick="changeMonth(1)">▶</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- Stats & Chart Card -->
+            <div class="card">
+                <div class="card-title">📊 Progress</div>
+                <div class="stats-row">
+                    <div class="stat-pill total">
+                        <div class="stat-num" id="totalTasks">0</div>
+                        <div class="stat-lbl">Total</div>
+                    </div>
+                    <div class="stat-pill done">
+                        <div class="stat-num" id="doneTasks">0</div>
+                        <div class="stat-lbl">Done</div>
+                    </div>
+                    <div class="stat-pill overdue">
+                        <div class="stat-num" id="overdueTasks">0</div>
+                        <div class="stat-lbl">Overdue</div>
+                    </div>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Pomodoro Card -->
+            <div class="card">
+                <div class="card-title">🍅 Pomodoro</div>
+                <div class="pomodoro-display">
+                    <div class="pomo-time" id="pomoTime">25:00</div>
+                    <div class="pomo-label" id="pomoLabel">Focus</div>
+                    <div class="pomodoro-controls">
+                        <button class="pomo-btn" id="pomoStart" onclick="togglePomodoro()">▶</button>
+                        <button class="pomo-btn" onclick="resetPomodoro()">↺</button>
+                    </div>
+                    <div class="pomo-sessions" id="pomoSessions">Sessions: 0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Floating Widget -->
+    <div class="music-mini collapsed" id="musicWidget">
+        <button class="music-toggle" onclick="toggleMusic()">🎵</button>
+        <div class="music-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span style="font-weight:600;font-size:0.85rem;">Apple Music</span>
+                <button class="btn-ghost" onclick="toggleMusic()" style="font-size:1rem;">✕</button>
+            </div>
             <div id="musicContainer"></div>
+            <div class="music-url-input">
+                <input type="text" id="musicUrl" placeholder="Paste Apple Music link...">
+                <button onclick="updateMusic()">Load</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Load tasks from localStorage
-        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        // ==================== DATA ====================
+        let tasks = JSON.parse(localStorage.getItem('flowTasks') || '[]');
+        let calendarMonth = new Date().getMonth();
+        let calendarYear = new Date().getFullYear();
+        const defaultMusic = 'https://embed.music.apple.com/us/playlist/lofi-chill/pl.u-8aAVXpWFNRGdB0';
 
-        // Default Apple Music - chill Lo-Fi
-        const defaultMusicUrl = 'https://embed.music.apple.com/us/playlist/lofi-chill/pl.u-8aAVXpWFNRGdB0';
+        function save() { localStorage.setItem('flowTasks', JSON.stringify(tasks)); }
 
-        function saveTasks() {
-            localStorage.setItem('tasks', JSON.stringify(tasks));
+        // ==================== THEME ====================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            document.getElementById('themeIcon').textContent = 
+                document.body.classList.contains('dark') ? '🌙' : '🌤';
+            localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
         }
 
+        // Load theme
+        if (localStorage.getItem('flowTheme') === 'dark' || 
+            (!localStorage.getItem('flowTheme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark');
+            document.getElementById('themeIcon').textContent = '🌙';
+        }
+
+        // ==================== TASKS ====================
         function addTask() {
             const input = document.getElementById('taskInput');
             const text = input.value.trim();
             if (!text) return;
-
-            tasks.push({ id: Date.now(), text: text, done: false });
+            tasks.push({
+                id: Date.now(),
+                text,
+                done: false,
+                date: null, // YYYY-MM-DD
+                createdAt: new Date().toISOString()
+            });
             input.value = '';
-            saveTasks();
-            render();
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') addTask();
+            save();
+            renderAll();
         }
 
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.done = !task.done;
-                saveTasks();
-                render();
-            }
+            if (task) { task.done = !task.done; save(); renderAll(); }
         }
 
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
-            saveTasks();
-            render();
+            save();
+            renderAll();
+        }
+
+        function updateTaskDate(id, dateVal) {
+            const task = tasks.find(t => t.id === id);
+            if (task) { task.date = dateVal || null; save(); renderAll(); }
         }
 
         function renderTaskList() {
             const list = document.getElementById('taskList');
             if (tasks.length === 0) {
-                list.innerHTML = '<div class="empty-state">No tasks yet. Add one above! 🚀</div>';
+                list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><span style="font-size:0.75rem;">Add one above</span></div>';
                 return;
             }
-            list.innerHTML = tasks.map(task => `
-                <li class="task-item">
-                    <div class="task-left">
-                        <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} 
-                               onchange="toggleTask(${task.id})">
-                        <span class="task-text ${task.done ? 'done' : ''}">${escapeHtml(task.text)}</span>
-                    </div>
-                    <button class="btn btn-delete" onclick="deleteTask(${task.id})">✕</button>
-                </li>
-            `).join('');
+            // Sort: pending first, then by date, then done
+            const sorted = [...tasks].sort((a, b) => {
+                if (a.done !== b.done) return a.done ? 1 : -1;
+                if (a.date && b.date) return a.date.localeCompare(b.date);
+                if (a.date) return -1;
+                if (b.date) return 1;
+                return b.id - a.id;
+            });
+
+            list.innerHTML = sorted.map(task => {
+                const today = new Date().toISOString().split('T')[0];
+                const isOverdue = task.date && task.date < today && !task.done;
+                return `
+                    <li class="task-item">
+                        <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''}
+                               onchange="toggleTask(${task.id})" onclick="event.stopPropagation()">
+                        <div class="task-content" onclick="toggleTask(${task.id})">
+                            <div class="task-text ${task.done ? 'done' : ''}">${escapeHtml(task.text)}</div>
+                            <input type="date" class="date-picker-mini ${isOverdue ? 'overdue' : ''}"
+                                   value="${task.date || ''}"
+                                   onchange="updateTaskDate(${task.id}, this.value)"
+                                   onclick="event.stopPropagation()"
+                                   title="Set due date">
+                        </div>
+                        <button class="btn-danger" onclick="event.stopPropagation();deleteTask(${task.id})">✕</button>
+                    </li>
+                `;
+            }).join('');
         }
 
+        // ==================== STATS & CHART ====================
+        function renderStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const total = tasks.length;
+            const done = tasks.filter(t => t.done).length;
+            const overdue = tasks.filter(t => t.date && t.date < today && !t.done).length;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('doneTasks').textContent = done;
+            document.getElementById('overdueTasks').textContent = overdue;
+
+            // Pie Chart
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if (window.pieChart) window.pieChart.destroy();
+
+            const pendingTotal = total - done;
+            window.pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Pending'],
+                    datasets: [{
+                        data: [done, pendingTotal],
+                        backgroundColor: ['#34c759', '#0071e3'],
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                        hoverBorderColor: 'transparent',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 16,
+                                usePointStyle: true,
+                                pointStyleWidth: 8,
+                                font: { family: '-apple-system', size: 11 },
+                                color: document.body.classList.contains('dark') ? '#98989d' : '#86868b',
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== CALENDAR ====================
+        function renderCalendar() {
+            document.getElementById('calMonth').textContent = 
+                new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            const grid = document.getElementById('calendarGrid');
+            const dayHeaders = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+            let html = dayHeaders.map(d => `<div class="cal-day-header">${d}</div>`).join('');
+
+            const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+            const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+            const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
+            const today = new Date().toISOString().split('T')[0];
+
+            // Get dates that have tasks
+            const taskDates = new Set(tasks.filter(t => t.date).map(t => t.date));
+
+            // Previous month
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="cal-day other-month">${prevMonthDays - i}</div>`;
+            }
+
+            // Current month
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isToday = dateStr === today;
+                const hasTask = taskDates.has(dateStr);
+                html += `<div class="cal-day${isToday ? ' today' : ''}${hasTask ? ' has-task' : ''}"
+                            title="${hasTask ? 'Tasks due!' : ''}">${d}</div>`;
+            }
+
+            // Next month (fill remaining)
+            const remaining = 42 - (firstDay + daysInMonth); // 6 rows
+            for (let d = 1; d <= remaining; d++) {
+                html += `<div class="cal-day other-month">${d}</div>`;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function changeMonth(delta) {
+            calendarMonth += delta;
+            if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+            renderCalendar();
+        }
+
+        // ==================== POMODORO ====================
+        let pomoState = {
+            minutes: 25,
+            seconds: 0,
+            isRunning: false,
+            isBreak: false,
+            sessions: parseInt(localStorage.getItem('pomoSessions') || '0'),
+            interval: null
+        };
+
+        function renderPomodoro() {
+            const display = document.getElementById('pomoTime');
+            const label = document.getElementById('pomoLabel');
+            const startBtn = document.getElementById('pomoStart');
+            display.textContent = `${String(pomoState.minutes).padStart(2,'0')}:${String(pomoState.seconds).padStart(2,'0')}`;
+            label.textContent = pomoState.isBreak ? 'Break 🌿' : 'Focus';
+            startBtn.textContent = pomoState.isRunning ? '⏸' : '▶';
+            startBtn.classList.toggle('active', pomoState.isRunning);
+            document.getElementById('pomoSessions').textContent = `Sessions: ${pomoState.sessions}`;
+        }
+
+        function togglePomodoro() {
+            if (pomoState.isRunning) {
+                clearInterval(pomoState.interval);
+                pomoState.isRunning = false;
+            } else {
+                pomoState.isRunning = true;
+                pomoState.interval = setInterval(() => {
+                    if (pomoState.seconds === 0 && pomoState.minutes === 0) {
+                        // Timer done
+                        clearInterval(pomoState.interval);
+                        pomoState.isRunning = false;
+                        if (!pomoState.isBreak) {
+                            pomoState.sessions++;
+                            localStorage.setItem('pomoSessions', pomoState.sessions);
+                        }
+                        pomoState.isBreak = !pomoState.isBreak;
+                        pomoState.minutes = pomoState.isBreak ? 5 : 25;
+                        pomoState.seconds = 0;
+                        renderPomodoro();
+                        // Auto-start next
+                        togglePomodoro();
+                        return;
+                    }
+                    if (pomoState.seconds === 0) {
+                        pomoState.minutes--;
+                        pomoState.seconds = 59;
+                    } else {
+                        pomoState.seconds--;
+                    }
+                    renderPomodoro();
+                }, 1000);
+            }
+            renderPomodoro();
+        }
+
+        function resetPomodoro() {
+            clearInterval(pomoState.interval);
+            pomoState.isRunning = false;
+            pomoState.isBreak = false;
+            pomoState.minutes = 25;
+            pomoState.seconds = 0;
+            renderPomodoro();
+        }
+
+        // ==================== MUSIC ====================
+        function toggleMusic() {
+            const widget = document.getElementById('musicWidget');
+            widget.classList.toggle('expanded');
+            widget.classList.toggle('collapsed');
+        }
+
+        function getEmbedUrl(url) {
+            if (!url || url.trim() === '') return defaultMusic;
+            if (url.includes('embed.music.apple.com')) return url;
+            return url.replace('music.apple.com', 'embed.music.apple.com').split('?')[0];
+        }
+
+        function updateMusic() {
+            const raw = document.getElementById('musicUrl').value.trim();
+            const embedUrl = getEmbedUrl(raw);
+            localStorage.setItem('flowMusic', embedUrl);
+            renderMusic(embedUrl);
+        }
+
+        function renderMusic(embedUrl) {
+            document.getElementById('musicContainer').innerHTML = `
+                <iframe allow="autoplay *; encrypted-media *;" frameborder="0"
+                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+                    src="${embedUrl}"></iframe>
+            `;
+        }
+
+        // ==================== UTILS ====================
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        function renderStats() {
-            const total = tasks.length;
-            const done = tasks.filter(t => t.done).length;
-            const pending = total - done;
-
-            document.getElementById('totalTasks').textContent = total;
-            document.getElementById('doneTasks').textContent = done;
-            document.getElementById('pendingTasks').textContent = pending;
-
-            // Pie Chart
-            const ctx = document.getElementById('pieChart').getContext('2d');
-
-            // Destroy previous chart instance
-            if (window.myPieChart) window.myPieChart.destroy();
-
-            window.myPieChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Done', 'Pending'],
-                    datasets: [{
-                        data: [done, pending],
-                        backgroundColor: ['#4ade80', '#fbbf24'],
-                        borderColor: ['#1a1a1a', '#1a1a1a'],
-                        borderWidth: 3,
-                        hoverBorderColor: ['#4ade80', '#fbbf24'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#e0e0e0',
-                                padding: 20,
-                                font: { size: 13 },
-                                usePointStyle: true,
-                                pointStyleWidth: 10,
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#2a2a2a',
-                            titleColor: '#fff',
-                            bodyColor: '#ccc',
-                            borderColor: '#444',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            padding: 12,
-                        }
-                    },
-                    cutout: '65%',
-                }
-            });
-        }
-
-        // Apple Music Embed
-        function getMusicEmbedUrl(url) {
-            if (!url || url.trim() === '') return defaultMusicUrl;
-            // If it's already an embed URL, return as-is
-            if (url.includes('embed.music.apple.com')) return url;
-            // Convert share link to embed
-            // Example: https://music.apple.com/us/playlist/... -> https://embed.music.apple.com/us/playlist/...
-            return url.replace('music.apple.com', 'embed.music.apple.com').split('?')[0];
-        }
-
-        function updateMusic() {
-            const urlInput = document.getElementById('musicUrl');
-            const rawUrl = urlInput.value.trim();
-            const embedUrl = getMusicEmbedUrl(rawUrl);
-            localStorage.setItem('musicEmbedUrl', embedUrl);
-            renderMusic(embedUrl);
-        }
-
-        function renderMusic(embedUrl) {
-            const container = document.getElementById('musicContainer');
-            container.innerHTML = `
-                <iframe 
-                    allow="autoplay *; encrypted-media *; fullscreen *" 
-                    frameborder="0" 
-                    height="450" 
-                    style="width:100%;max-width:660px;overflow:hidden;background:transparent;border-radius:12px;" 
-                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
-                    src="${embedUrl}">
-                </iframe>
-            `;
-        }
-
-        function render() {
+        function renderAll() {
             renderTaskList();
             renderStats();
+            renderCalendar();
         }
 
-        // Initial render
-        render();
-        const savedMusicUrl = localStorage.getItem('musicEmbedUrl') || defaultMusicUrl;
-        renderMusic(savedMusicUrl);
-        if (savedMusicUrl !== defaultMusicUrl) {
-            document.getElementById('musicUrl').value = savedMusicUrl;
-        }
+        // ==================== INIT ====================
+        renderAll();
+        renderPomodoro();
+        const savedMusic = localStorage.getItem('flowMusic') || defaultMusic;
+        renderMusic(savedMusic);
+        if (savedMusic !== defaultMusic) document.getElementById('musicUrl').value = savedMusic;
     </script>
 </body>
-
 </html>
