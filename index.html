@@ -17,7 +17,6 @@
             --green: #34c759;
             --red: #ff3b30;
             --orange: #ff9500;
-            --yellow: #ffcc00;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
             --shadow: 0 4px 20px rgba(0,0,0,0.06);
             --shadow-lg: 0 20px 60px rgba(0,0,0,0.08);
@@ -54,6 +53,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding-bottom: 100px;
         }
 
         /* Header */
@@ -296,7 +296,6 @@
         .task-date:hover { background: rgba(128,128,128,0.1); }
         .task-date.overdue { color: var(--red); font-weight: 600; }
 
-        /* Date picker inline */
         .date-picker-mini {
             background: transparent;
             border: none;
@@ -396,6 +395,7 @@
             width: 4px; height: 4px;
             border-radius: 50%;
             background: var(--accent);
+            box-shadow: 0 0 6px rgba(0,113,227,0.5);
         }
         .cal-day.today.has-task::after { background: #fff; }
         .cal-day.other-month { color: transparent; pointer-events: none; }
@@ -429,7 +429,7 @@
         }
         .cal-nav button:hover { background: rgba(128,128,128,0.18); }
 
-        /* Music Widget */
+        /* YouTube Music Widget */
         .music-mini {
             position: fixed;
             bottom: 24px;
@@ -443,8 +443,8 @@
             height: 52px;
         }
         .music-mini.expanded {
-            width: 360px;
-            height: 420px;
+            width: 380px;
+            height: 340px;
         }
 
         .music-toggle {
@@ -466,15 +466,25 @@
             bottom: 0;
             right: 0;
             z-index: 2;
+            animation: pulse-music 2s infinite;
+        }
+
+        @keyframes pulse-music {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,113,227,0.3); }
+            50% { box-shadow: 0 0 0 12px rgba(0,113,227,0); }
+        }
+
+        .music-mini.expanded .music-toggle {
+            animation: none;
         }
 
         .music-toggle:hover { transform: scale(1.08); }
 
         .music-panel {
             position: absolute;
-            bottom: 0;
+            bottom: 64px;
             right: 0;
-            width: 360px;
+            width: 380px;
             background: var(--card-bg);
             backdrop-filter: blur(50px);
             -webkit-backdrop-filter: blur(50px);
@@ -486,18 +496,20 @@
             opacity: 0;
             transform: translateY(20px) scale(0.95);
             pointer-events: none;
+            visibility: hidden;
         }
 
         .music-mini.expanded .music-panel {
             opacity: 1;
             transform: translateY(0) scale(1);
             pointer-events: all;
+            visibility: visible;
         }
 
         .music-panel iframe {
             border-radius: var(--radius-sm);
             width: 100%;
-            height: 320px;
+            height: 195px;
             border: none;
         }
         .music-url-input {
@@ -516,17 +528,31 @@
             color: var(--text);
             outline: none;
         }
-        .music-url-input input:focus { border-color: var(--accent); }
+        .music-url-input input:focus { border-color: #ff0000; }
         .music-url-input button {
             padding: 8px 14px;
             border-radius: 20px;
             border: none;
-            background: #fa586a;
+            background: #ff0000;
             color: #fff;
             font-family: var(--font);
             font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+        .music-url-input button:hover { background: #cc0000; }
+        .music-hint {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 480px) {
+            .music-mini.expanded { width: 90vw; }
+            .music-panel { width: 90vw; }
         }
 
         /* Pomodoro */
@@ -663,19 +689,20 @@
         </div>
     </div>
 
-    <!-- Music Floating Widget -->
+    <!-- YouTube Music Floating Widget -->
     <div class="music-mini collapsed" id="musicWidget">
-        <button class="music-toggle" onclick="toggleMusic()">🎵</button>
+        <button class="music-toggle" onclick="toggleMusic()" title="Music">🎵</button>
         <div class="music-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <span style="font-weight:600;font-size:0.85rem;">Apple Music</span>
-                <button class="btn-ghost" onclick="toggleMusic()" style="font-size:1rem;">✕</button>
+                <span style="font-weight:600;font-size:0.85rem;">🎧 YouTube Music</span>
+                <button class="btn-ghost" onclick="toggleMusic()" style="font-size:1rem;border-radius:50%;width:28px;height:28px;padding:0;">✕</button>
             </div>
             <div id="musicContainer"></div>
             <div class="music-url-input">
-                <input type="text" id="musicUrl" placeholder="Paste Apple Music link...">
+                <input type="text" id="musicUrl" placeholder="Paste YouTube video/playlist URL...">
                 <button onclick="updateMusic()">Load</button>
             </div>
+            <div class="music-hint">💡 Right-click any YouTube video → Copy link → Paste here</div>
         </div>
     </div>
 
@@ -684,7 +711,7 @@
         let tasks = JSON.parse(localStorage.getItem('flowTasks') || '[]');
         let calendarMonth = new Date().getMonth();
         let calendarYear = new Date().getFullYear();
-        const defaultMusic = 'https://embed.music.apple.com/us/playlist/lofi-chill/pl.u-8aAVXpWFNRGdB0';
+        const defaultMusic = 'https://www.youtube.com/embed/jfKfPfyJRdk'; // lofi hip hop radio
 
         function save() { localStorage.setItem('flowTasks', JSON.stringify(tasks)); }
 
@@ -694,6 +721,8 @@
             document.getElementById('themeIcon').textContent = 
                 document.body.classList.contains('dark') ? '🌙' : '🌤';
             localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            // Redraw chart to update label colors
+            renderStats();
         }
 
         // Load theme
@@ -712,7 +741,7 @@
                 id: Date.now(),
                 text,
                 done: false,
-                date: null, // YYYY-MM-DD
+                date: null,
                 createdAt: new Date().toISOString()
             });
             input.value = '';
@@ -739,10 +768,9 @@
         function renderTaskList() {
             const list = document.getElementById('taskList');
             if (tasks.length === 0) {
-                list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><span style="font-size:0.75rem;">Add one above</span></div>';
+                list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><span style="font-size:0.75rem;">Add one above to get started</span></div>';
                 return;
             }
-            // Sort: pending first, then by date, then done
             const sorted = [...tasks].sort((a, b) => {
                 if (a.done !== b.done) return a.done ? 1 : -1;
                 if (a.date && b.date) return a.date.localeCompare(b.date);
@@ -766,7 +794,7 @@
                                    onclick="event.stopPropagation()"
                                    title="Set due date">
                         </div>
-                        <button class="btn-danger" onclick="event.stopPropagation();deleteTask(${task.id})">✕</button>
+                        <button class="btn-danger" onclick="event.stopPropagation();deleteTask(${task.id})" title="Delete">✕</button>
                     </li>
                 `;
             }).join('');
@@ -783,21 +811,22 @@
             document.getElementById('doneTasks').textContent = done;
             document.getElementById('overdueTasks').textContent = overdue;
 
-            // Pie Chart
             const ctx = document.getElementById('pieChart').getContext('2d');
             if (window.pieChart) window.pieChart.destroy();
 
             const pendingTotal = total - done;
+            const isDark = document.body.classList.contains('dark');
             window.pieChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Done', 'Pending'],
                     datasets: [{
-                        data: [done, pendingTotal],
+                        data: [done, Math.max(0, pendingTotal)],
                         backgroundColor: ['#34c759', '#0071e3'],
                         borderColor: 'transparent',
                         borderWidth: 0,
-                        hoverBorderColor: 'transparent',
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: isDark ? '#2c2c2e' : '#ffffff',
                     }]
                 },
                 options: {
@@ -812,7 +841,7 @@
                                 usePointStyle: true,
                                 pointStyleWidth: 8,
                                 font: { family: '-apple-system', size: 11 },
-                                color: document.body.classList.contains('dark') ? '#98989d' : '#86868b',
+                                color: isDark ? '#98989d' : '#86868b',
                             }
                         }
                     }
@@ -834,25 +863,21 @@
             const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
             const today = new Date().toISOString().split('T')[0];
 
-            // Get dates that have tasks
             const taskDates = new Set(tasks.filter(t => t.date).map(t => t.date));
 
-            // Previous month
             for (let i = firstDay - 1; i >= 0; i--) {
                 html += `<div class="cal-day other-month">${prevMonthDays - i}</div>`;
             }
 
-            // Current month
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const isToday = dateStr === today;
                 const hasTask = taskDates.has(dateStr);
                 html += `<div class="cal-day${isToday ? ' today' : ''}${hasTask ? ' has-task' : ''}"
-                            title="${hasTask ? 'Tasks due!' : ''}">${d}</div>`;
+                            title="${hasTask ? 'Tasks due today!' : ''}">${d}</div>`;
             }
 
-            // Next month (fill remaining)
-            const remaining = 42 - (firstDay + daysInMonth); // 6 rows
+            const remaining = 42 - (firstDay + daysInMonth);
             for (let d = 1; d <= remaining; d++) {
                 html += `<div class="cal-day other-month">${d}</div>`;
             }
@@ -896,7 +921,6 @@
                 pomoState.isRunning = true;
                 pomoState.interval = setInterval(() => {
                     if (pomoState.seconds === 0 && pomoState.minutes === 0) {
-                        // Timer done
                         clearInterval(pomoState.interval);
                         pomoState.isRunning = false;
                         if (!pomoState.isBreak) {
@@ -907,7 +931,6 @@
                         pomoState.minutes = pomoState.isBreak ? 5 : 25;
                         pomoState.seconds = 0;
                         renderPomodoro();
-                        // Auto-start next
                         togglePomodoro();
                         return;
                     }
@@ -932,31 +955,41 @@
             renderPomodoro();
         }
 
-        // ==================== MUSIC ====================
+        // ==================== YOUTUBE MUSIC ====================
         function toggleMusic() {
             const widget = document.getElementById('musicWidget');
             widget.classList.toggle('expanded');
             widget.classList.toggle('collapsed');
         }
 
-        function getEmbedUrl(url) {
+        function getYouTubeEmbedUrl(url) {
             if (!url || url.trim() === '') return defaultMusic;
-            if (url.includes('embed.music.apple.com')) return url;
-            return url.replace('music.apple.com', 'embed.music.apple.com').split('?')[0];
+            // Already an embed URL
+            if (url.includes('youtube.com/embed/')) return url.split('?')[0];
+            // youtube.com/watch?v=VIDEO_ID
+            const match = url.match(/(?:v=|\/)([\w-]{11})/);
+            if (match) return `https://www.youtube.com/embed/${match[1]}`;
+            // youtu.be/VIDEO_ID
+            const shortMatch = url.match(/youtu\.be\/([\w-]{11})/);
+            if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+            // Fallback
+            return defaultMusic;
         }
 
         function updateMusic() {
             const raw = document.getElementById('musicUrl').value.trim();
-            const embedUrl = getEmbedUrl(raw);
+            const embedUrl = getYouTubeEmbedUrl(raw);
             localStorage.setItem('flowMusic', embedUrl);
             renderMusic(embedUrl);
         }
 
         function renderMusic(embedUrl) {
             document.getElementById('musicContainer').innerHTML = `
-                <iframe allow="autoplay *; encrypted-media *;" frameborder="0"
-                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
-                    src="${embedUrl}"></iframe>
+                <iframe src="${embedUrl}"
+                    allow="autoplay; encrypted-media"
+                    allowfullscreen
+                    style="border-radius:14px;width:100%;height:195px;border:none;">
+                </iframe>
             `;
         }
 
