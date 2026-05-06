@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow • Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.72);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #0071e3;
+            --green: #34c759;
+            --red: #ff3b30;
+            --orange: #ff9500;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+            transition: background 0.4s, color 0.4s;
+        }
+
+        body.dark {
+            --bg: #1c1c1e;
+            --card-bg: rgba(44, 44, 46, 0.82);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text: #f5f5f7;
+            --text-secondary: #98989d;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .nav-link.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .theme-toggle {
+            width: 52px;
+            height: 28px;
+            background: rgba(120, 120, 128, 0.2);
+            border-radius: 28px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        body.dark .theme-toggle::after {
+            transform: translateX(24px);
+            background: #1c1c1e;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            margin-bottom: 20px;
+        }
+        .dark .card {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .cal-nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .cal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .cal-nav-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .cal-nav-btns button {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(128, 128, 128, 0.06);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        .cal-nav-btns button:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .cal-nav-btns .today-btn {
+            width: auto;
+            padding: 0 14px;
+            border-radius: 18px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .cal-day-header {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 10px 0;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cal-day-cell {
+            aspect-ratio: 1;
+            padding: 6px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8rem;
+        }
+        .cal-day-cell:hover {
+            background: rgba(128, 128, 128, 0.06);
+        }
+        .cal-day-cell.today {
+            background: rgba(0, 113, 227, 0.08);
+            border: 1px solid var(--accent);
+        }
+        .cal-day-cell.other-month {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        .cal-day-num {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .cal-day-cell.today .cal-day-num {
+            color: var(--accent);
+        }
+        .cal-day-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            flex: 1;
+        }
+        .cal-task-dot {
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cal-task-dot.done {
+            text-decoration: line-through;
+            opacity: 0.4;
+        }
+        .cal-task-dot.pending {
+            background: rgba(0, 113, 227, 0.12);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .cal-task-dot.overdue {
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--red);
+            font-weight: 600;
+        }
+        .cal-task-dot:hover {
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 800px) {
+            .cal-day-cell {
+                min-height: 60px;
+                padding: 4px;
+                font-size: 0.7rem;
+            }
+            .cal-task-dot {
+                font-size: 0.6rem;
+                padding: 1px 3px;
+            }
+        }
+
+        .upcoming-section {
+            margin-top: 20px;
+        }
+        .upcoming-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .upcoming-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .upcoming-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(128, 128, 128, 0.04);
+            font-size: 0.85rem;
+        }
+        .upcoming-date {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--accent);
+            min-width: 50px;
+        }
+        .upcoming-text {
+            flex: 1;
+        }
+        .upcoming-text.done {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        .upcoming-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .upcoming-badge.done {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--green);
+        }
+        .upcoming-badge.pending {
+            background: rgba(0, 113, 227, 0.12);
+            color: var(--accent);
+        }
+        .upcoming-badge.overdue {
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--red);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Flow</h1>
+            <div class="header-row">
+                <a href="index.html" class="nav-link">Dashboard</a>
+                <a href="calendar.html" class="nav-link active">📅 Calendar</a>
+                <button class="theme-toggle" onclick="toggleTheme()"></button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="cal-nav-row">
+                <div class="cal-title" id="calTitle">May 2026</div>
+                <div class="cal-nav-btns">
+                    <button onclick="changeMonth(-1)">◀</button>
+                    <button class="today-btn" onclick="goToToday()">Today</button>
+                    <button onclick="changeMonth(1)">▶</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="card upcoming-section">
+            <div class="upcoming-title">📋 Upcoming Tasks</div>
+            <ul class="upcoming-list" id="upcomingList"></ul>
+        </div>
+    </div>
+
+    <script>
+        var tasks = JSON.parse(localStorage.getItem('flowTasks') || '[]');
+        var calendarMonth = new Date().getMonth();
+        var calendarYear = new Date().getFullYear();
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('flowTheme') === 'dark') document.body.classList.add('dark');
+
+        function toggleTask(id) {
+            var task = tasks.find(function(t) { return t.id === id; });
+            if (task) { task.done = !task.done;
+                localStorage.setItem('flowTasks', JSON.stringify(tasks));
+                renderAll(); }
+        }
+
+        function getTasksForDate(dateStr) {
+            return tasks.filter(function(t) { return t.date === dateStr; });
+        }
+
+        function renderCalendar() {
+            document.getElementById('calTitle').textContent = new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+            var grid = document.getElementById('calendarGrid');
+            var html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d) { return '<div class="cal-day-header">' + d + '</div>'; }).join('');
+            var firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+            var daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+            var prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
+            var today = new Date().toISOString().split('T')[0];
+
+            // Previous month
+            for (var i = firstDay - 1; i >= 0; i--) {
+                html += '<div class="cal-day-cell other-month"><div class="cal-day-num">' + (prevMonthDays - i) + '</div></div>';
+            }
+
+            // Current month
+            for (var d = 1; d <= daysInMonth; d++) {
+                var dateStr = calendarYear + '-' + String(calendarMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                var dayTasks = getTasksForDate(dateStr);
+                var isToday = dateStr === today;
+                var taskHtml = '';
+                dayTasks.slice(0, 4).forEach(function(task) {
+                    var cls = task.done ? 'done' : (dateStr < today ? 'overdue' : 'pending');
+                    taskHtml += '<div class="cal-task-dot ' + cls + '" onclick="event.stopPropagation();toggleTask(' + task.id + ')" title="' + escapeHtml(task.text) + '">' + (task.done ? '✓ ' : '○ ') + escapeHtml(task.text).substring(0, 20) + '</div>';
+                });
+                if (dayTasks.length > 4) taskHtml += '<div class="cal-task-dot" style="opacity:0.5">+' + (dayTasks.length - 4) + ' more</div>';
+                html += '<div class="cal-day-cell' + (isToday ? ' today' : '') + '"><div class="cal-day-num">' + d + '</div><div class="cal-day-tasks">' + taskHtml + '</div></div>';
+            }
+
+            // Fill remaining grid
+            var totalCells = firstDay + daysInMonth;
+            var remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (var r = 1; r <= remaining; r++) {
+                html += '<div class="cal-day-cell other-month"><div class="cal-day-num">' + r + '</div></div>';
+            }
+
+            grid.innerHTML = html;
+            renderUpcoming();
+        }
+
+        function renderUpcoming() {
+            var today = new Date().toISOString().split('T')[0];
+            var upcoming = tasks.filter(function(t) { return t.date && t.date >= today; }).sort(function(a, b) { return a.date.localeCompare(b.date); });
+            var list = document.getElementById('upcomingList');
+            if (upcoming.length === 0) {
+                list.innerHTML = '<div class="empty-state">No upcoming tasks 🎉</div>';
+                return;
+            }
+            list.innerHTML = upcoming.slice(0, 15).map(function(task) {
+                var dateObj = new Date(task.date + 'T00:00:00');
+                var dateLabel = dateObj.toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' });
+                var badgeCls = task.done ? 'done' : (task.date < today ? 'overdue' : 'pending');
+                var badgeText = task.done ? 'Done' : (task.date < today ? 'Overdue' : 'Upcoming');
+                return '<li class="upcoming-item"><span class="upcoming-date">' + dateLabel + '</span><span class="upcoming-text ' + (task.done ? 'done' : '') + '">' + escapeHtml(task.text) + '</span><span class="upcoming-badge ' + badgeCls + '">' + badgeText + '</span></li>';
+            }).join('');
+        }
+
+        function changeMonth(d) {
+            calendarMonth += d;
+            if (calendarMonth < 0) { calendarMonth = 11;
+                calendarYear--; }
+            if (calendarMonth > 11) { calendarMonth = 0;
+                calendarYear++; }
+            renderCalendar();
+        }
+
+        function goToToday() {
+            calendarMonth = new Date().getMonth();
+            calendarYear = new Date().getFullYear();
+            renderCalendar();
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderAll() { renderCalendar(); }
+
+        renderAll();
+    </script>
+</body>
+</html>
