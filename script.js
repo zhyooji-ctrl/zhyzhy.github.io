@@ -286,9 +286,6 @@ function togglePomodoro() {
                 pomoState.totalSeconds = pomoState.isBreak ? 5 * 60 : 25 * 60;
                 pomoState.remaining = pomoState.totalSeconds;
                 renderPomodoro();
-                if (pomoState.isBreak) {
-                    // Auto-start break after wheel closes
-                }
                 return;
             }
             renderPomodoro();
@@ -373,7 +370,6 @@ function drawWheel(rotation) {
         wheelCtx.lineWidth = 2;
         wheelCtx.stroke();
 
-        // Text
         wheelCtx.save();
         wheelCtx.translate(cx, cy);
         wheelCtx.rotate(startAngle + arcSize / 2);
@@ -384,7 +380,6 @@ function drawWheel(rotation) {
         wheelCtx.restore();
     }
 
-    // Center circle
     wheelCtx.beginPath();
     wheelCtx.arc(cx, cy, 25, 0, 2 * Math.PI);
     wheelCtx.fillStyle = '#fff';
@@ -413,7 +408,6 @@ function showWheel() {
     wheelAngle = Math.random() * 360;
     document.getElementById('wheelCanvas').style.transform = 'rotate(' + wheelAngle + 'deg)';
     drawWheel(wheelAngle * Math.PI / 180);
-    // Auto spin after a tiny delay
     setTimeout(spinWheel, 400);
 }
 
@@ -431,7 +425,6 @@ function spinWheel() {
         var result = getWheelResult(wheelAngle);
         document.getElementById('wheelResult').textContent = result.label + ' — Enjoy your break!';
         document.getElementById('wheelResult').classList.add('show');
-        // Auto start break
         if (!pomoState.isRunning && pomoState.isBreak && pomoState.remaining === 5 * 60) {
             togglePomodoro();
         }
@@ -440,13 +433,11 @@ function spinWheel() {
 
 function closeWheel() {
     document.getElementById('wheelOverlay').classList.remove('show');
-    // Start break timer if not already running
     if (!pomoState.isRunning && pomoState.isBreak) {
         togglePomodoro();
     }
 }
 
-// Draw initial wheel
 drawWheel(0);
 
 // ==================== MUSIC ====================
@@ -504,6 +495,45 @@ function animateParticles() {
     requestAnimationFrame(animateParticles);
 }
 animateParticles();
+
+// ==================== CARD TILT EFFECT ====================
+var cards = document.querySelectorAll('.card');
+var mouseX = 0, mouseY = 0;
+
+document.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+
+    cards.forEach(function(card) {
+        var rect = card.getBoundingClientRect();
+        var cardCenterX = rect.left + rect.width / 2;
+        var cardCenterY = rect.top + rect.height / 2;
+        var deltaX = (mouseX - cardCenterX) / rect.width;
+        var deltaY = (mouseY - cardCenterY) / rect.height;
+        var tiltX = deltaY * -4;
+        var tiltY = deltaX * 4;
+        var distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        var scale = 1 + Math.max(0, 0.015 - distance * 0.01);
+
+        card.style.transform = 'perspective(800px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg) scale(' + scale + ')';
+        card.style.transition = 'transform 0.15s ease-out, box-shadow 0.3s';
+
+        if (distance < 0.5) {
+            card.style.boxShadow = '0 12px 40px rgba(0,0,0,' + (0.08 + distance * 0.06) + ')';
+        } else {
+            card.style.boxShadow = '';
+        }
+    });
+});
+
+// Reset on mouse leave
+document.addEventListener('mouseleave', function() {
+    cards.forEach(function(card) {
+        card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
+        card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.6s';
+        card.style.boxShadow = '';
+    });
+});
 
 // ==================== UTILS ====================
 function escapeHtml(text) {
