@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow • Habits</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <style>
+        .habits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 18px;
+        }
+        @media (max-width: 1100px) { .habits-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px) { .habits-grid { grid-template-columns: 1fr; } }
+
+        /* Water Bottle */
+        .water-bottle-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .water-bottle {
+            width: 70px;
+            height: 180px;
+            border: 3px solid #5ac8fa;
+            border-radius: 20px 20px 10px 10px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(90, 200, 250, 0.05);
+            box-shadow: 0 4px 15px rgba(90, 200, 250, 0.15);
+        }
+        .water-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #5ac8fa, #0071e3);
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 0 7px 7px;
+        }
+        .water-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        .water-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .water-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(128,128,128,0.08);
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .water-btn:hover { background: #5ac8fa; color: #fff; border-color: #5ac8fa; }
+        .water-count { font-size: 0.85rem; font-weight: 600; color: #5ac8fa; }
+
+        /* Habit Card */
+        .habit-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 0;
+        }
+        .habit-icon {
+            font-size: 2.5rem;
+        }
+        .habit-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .habit-toggle {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--card-border);
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .habit-toggle.done {
+            background: #af52de;
+            border-color: #af52de;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(175, 82, 222, 0.3);
+        }
+        .habit-streak {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .habit-streak strong { color: #af52de; }
+
+        /* Chart card */
+        .habits-chart-wrap {
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .week-dots {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 6px;
+        }
+        .week-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: rgba(128,128,128,0.15);
+            transition: all 0.3s;
+        }
+        .week-dot.filled { background: #af52de; }
+        .week-dot.today { border: 2px solid #af52de; background: transparent; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Flow</h1>
+            <div class="header-row">
+                <a href="index.html" class="nav-link">Dashboard</a>
+                <a href="calendar.html" class="nav-link">📅 Calendar</a>
+                <a href="habits.html" class="nav-link active">💧 Habits</a>
+                <button class="theme-toggle" onclick="toggleTheme()"></button>
+            </div>
+        </div>
+
+        <div class="habits-grid">
+            <!-- Water Tracker -->
+            <div class="card">
+                <div class="card-title">💧 Water (8 glasses)</div>
+                <div class="water-bottle-wrap">
+                    <div class="water-bottle">
+                        <div class="water-fill" id="waterFill" style="height:0%"></div>
+                        <div class="water-label" id="waterLabel">0/8</div>
+                    </div>
+                    <div class="water-controls">
+                        <button class="water-btn" onclick="changeWater(-1)">−</button>
+                        <span class="water-count" id="waterCount">0 glasses</span>
+                        <button class="water-btn" onclick="changeWater(1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Activity -->
+            <div class="card">
+                <div class="card-title">🏃 Activity</div>
+                <div class="habit-item">
+                    <div class="habit-icon">🏃</div>
+                    <div class="habit-name">30 min exercise</div>
+                    <button class="habit-toggle" id="habit-exercise" onclick="toggleHabit('exercise')">○</button>
+                    <div class="habit-streak">Streak: <strong id="streak-exercise">0</strong> days</div>
+                    <div class="week-dots" id="dots-exercise"></div>
+                </div>
+            </div>
+
+            <!-- Reading -->
+            <div class="card">
+                <div class="card-title">📖 Reading</div>
+                <div class="habit-item">
+                    <div class="habit-icon">📖</div>
+                    <div class="habit-name">20 min reading</div>
+                    <button class="habit-toggle" id="habit-reading" onclick="toggleHabit('reading')">○</button>
+                    <div class="habit-streak">Streak: <strong id="streak-reading">0</strong> days</div>
+                    <div class="week-dots" id="dots-reading"></div>
+                </div>
+            </div>
+
+            <!-- Silent Time -->
+            <div class="card">
+                <div class="card-title">🤫 Silent Time</div>
+                <div class="habit-item">
+                    <div class="habit-icon">🤫</div>
+                    <div class="habit-name">10 min silence</div>
+                    <button class="habit-toggle" id="habit-silent" onclick="toggleHabit('silent')">○</button>
+                    <div class="habit-streak">Streak: <strong id="streak-silent">0</strong> days</div>
+                    <div class="week-dots" id="dots-silent"></div>
+                </div>
+            </div>
+
+            <!-- Sleep -->
+            <div class="card">
+                <div class="card-title">😴 Sleep</div>
+                <div class="habit-item">
+                    <div class="habit-icon">😴</div>
+                    <div class="habit-name">7+ hours sleep</div>
+                    <button class="habit-toggle" id="habit-sleep" onclick="toggleHabit('sleep')">○</button>
+                    <div class="habit-streak">Streak: <strong id="streak-sleep">0</strong> days</div>
+                    <div class="week-dots" id="dots-sleep"></div>
+                </div>
+            </div>
+
+            <!-- Stretching -->
+            <div class="card">
+                <div class="card-title">🧘 Stretching</div>
+                <div class="habit-item">
+                    <div class="habit-icon">🧘</div>
+                    <div class="habit-name">5 min stretch</div>
+                    <button class="habit-toggle" id="habit-stretch" onclick="toggleHabit('stretch')">○</button>
+                    <div class="habit-streak">Streak: <strong id="streak-stretch">0</strong> days</div>
+                    <div class="week-dots" id="dots-stretch"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Progress Pie Chart -->
+        <div class="card" style="margin-top:18px;">
+            <div class="card-title">📊 Today's Habits</div>
+            <div class="habits-chart-wrap">
+                <canvas id="habitsPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var habits = JSON.parse(localStorage.getItem('flowHabits') || '{}');
+        var waterGlasses = parseInt(localStorage.getItem('flowWater_' + getToday()) || '0');
+
+        // Ensure all habit keys exist
+        var habitKeys = ['exercise', 'reading', 'silent', 'sleep', 'stretch'];
+        habitKeys.forEach(function(k) { if (!habits[k]) habits[k] = {}; });
+
+        function getToday() { return new Date().toISOString().split('T')[0]; }
+
+        function saveHabits() { localStorage.setItem('flowHabits', JSON.stringify(habits)); }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('flowTheme') === 'dark') document.body.classList.add('dark');
+
+        // ==================== WATER ====================
+        function changeWater(delta) {
+            waterGlasses = Math.max(0, Math.min(8, waterGlasses + delta));
+            localStorage.setItem('flowWater_' + getToday(), waterGlasses);
+            renderWater();
+            renderHabitsChart();
+        }
+
+        function renderWater() {
+            var pct = (waterGlasses / 8) * 100;
+            document.getElementById('waterFill').style.height = pct + '%';
+            document.getElementById('waterLabel').textContent = waterGlasses + '/8';
+            document.getElementById('waterCount').textContent = waterGlasses + ' glasses';
+        }
+
+        // ==================== HABITS ====================
+        function toggleHabit(key) {
+            var today = getToday();
+            if (!habits[key]) habits[key] = {};
+            if (habits[key][today]) {
+                delete habits[key][today];
+            } else {
+                habits[key][today] = true;
+            }
+            saveHabits();
+            renderAll();
+        }
+
+        function getStreak(key) {
+            if (!habits[key]) return 0;
+            var streak = 0;
+            var d = new Date();
+            // If today not done, start from yesterday
+            var today = getToday();
+            if (!habits[key][today]) {
+                d.setDate(d.getDate() - 1);
+            }
+            while (true) {
+                var dateStr = d.toISOString().split('T')[0];
+                if (habits[key][dateStr]) {
+                    streak++;
+                    d.setDate(d.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        function getWeekDots(key) {
+            var dots = [];
+            var today = new Date();
+            var dayOfWeek = today.getDay();
+            var startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - dayOfWeek);
+            for (var i = 0; i < 7; i++) {
+                var d = new Date(startOfWeek);
+                d.setDate(startOfWeek.getDate() + i);
+                var dateStr = d.toISOString().split('T')[0];
+                var isToday = dateStr === getToday();
+                var done = habits[key] && habits[key][dateStr];
+                dots.push({ done: done, isToday: isToday });
+            }
+            return dots;
+        }
+
+        function renderHabitCard(key, icon, name) {
+            var today = getToday();
+            var done = habits[key] && habits[key][today];
+            var btn = document.getElementById('habit-' + key);
+            var streakEl = document.getElementById('streak-' + key);
+            var dotsEl = document.getElementById('dots-' + key);
+
+            if (btn) {
+                btn.textContent = done ? '✓' : '○';
+                btn.classList.toggle('done', done);
+            }
+            if (streakEl) {
+                streakEl.textContent = getStreak(key);
+            }
+            if (dotsEl) {
+                var dots = getWeekDots(key);
+                dotsEl.innerHTML = dots.map(function(d) {
+                    return '<div class="week-dot' + (d.done ? ' filled' : '') + (d.isToday ? ' today' : '') + '"></div>';
+                }).join('');
+            }
+        }
+
+        function renderHabitsChart() {
+            var today = getToday();
+            var doneCount = 0;
+            var totalHabits = habitKeys.length + 1; // +1 for water
+            habitKeys.forEach(function(k) {
+                if (habits[k] && habits[k][today]) doneCount++;
+            });
+            if (waterGlasses >= 8) doneCount++;
+
+            var ctx = document.getElementById('habitsPieChart');
+            if (!ctx) return;
+            if (window.habitsChart) window.habitsChart.destroy();
+
+            var remaining = totalHabits - doneCount;
+            window.habitsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Remaining'],
+                    datasets: [{
+                        data: [doneCount, Math.max(0, remaining)],
+                        backgroundColor: ['#af52de', 'rgba(128,128,128,0.15)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 14, usePointStyle: true, font: { size: 11 }, color: document.body.classList.contains('dark') ? '#98989d' : '#86868b' }
+                        }
+                    }
+                }
+            });
+
+            // Center text
+            var centerText = doneCount + '/' + totalHabits;
+            Chart.register({
+                id: 'centerText',
+                afterDraw: function(chart) {
+                    var ctx2 = chart.ctx;
+                    var cx = (chart.chartArea.left + chart.chartArea.right) / 2;
+                    var cy = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                    ctx2.fillStyle = document.body.classList.contains('dark') ? '#f5f5f7' : '#1d1d1f';
+                    ctx2.font = 'bold 1.5rem -apple-system, sans-serif';
+                    ctx2.textAlign = 'center';
+                    ctx2.fillText(centerText, cx, cy + 5);
+                }
+            });
+        }
+
+        function renderAll() {
+            renderWater();
+            habitKeys.forEach(function(k) { renderHabitCard(k); });
+            renderHabitsChart();
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>
