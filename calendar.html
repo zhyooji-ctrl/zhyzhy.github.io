@@ -4,130 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flow • Calendar</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg: #f5f5f7;
-            --card-bg: rgba(255, 255, 255, 0.72);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --text: #1d1d1f;
-            --text-secondary: #86868b;
-            --accent: #0071e3;
-            --green: #34c759;
-            --red: #ff3b30;
-            --orange: #ff9500;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 24px;
-            transition: background 0.4s, color 0.4s;
-        }
-
-        body.dark {
-            --bg: #1c1c1e;
-            --card-bg: rgba(44, 44, 46, 0.82);
-            --card-border: rgba(255, 255, 255, 0.1);
-            --text: #f5f5f7;
-            --text-secondary: #98989d;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .header-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .nav-link {
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text);
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--card-border);
-            transition: all 0.2s;
-        }
-        .nav-link:hover {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-        .nav-link.active {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        .theme-toggle {
-            width: 52px;
-            height: 28px;
-            background: rgba(120, 120, 128, 0.2);
-            border-radius: 28px;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .theme-toggle::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-        }
-        body.dark .theme-toggle::after {
-            transform: translateX(24px);
-            background: #1c1c1e;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(40px);
-            border: 1px solid var(--card-border);
-            border-radius: 22px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-            margin-bottom: 20px;
-        }
-        .dark .card {
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
         .cal-nav-row {
             display: flex;
             justify-content: space-between;
@@ -367,9 +245,11 @@
 
         function toggleTask(id) {
             var task = tasks.find(function(t) { return t.id === id; });
-            if (task) { task.done = !task.done;
+            if (task) {
+                task.done = !task.done;
                 localStorage.setItem('flowTasks', JSON.stringify(tasks));
-                renderAll(); }
+                renderAll();
+            }
         }
 
         function getTasksForDate(dateStr) {
@@ -379,7 +259,9 @@
         function renderCalendar() {
             document.getElementById('calTitle').textContent = new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
             var grid = document.getElementById('calendarGrid');
-            var html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d) { return '<div class="cal-day-header">' + d + '</div>'; }).join('');
+            var html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d) {
+                return '<div class="cal-day-header">' + d + '</div>';
+            }).join('');
             var firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
             var daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
             var prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
@@ -434,10 +316,8 @@
 
         function changeMonth(d) {
             calendarMonth += d;
-            if (calendarMonth < 0) { calendarMonth = 11;
-                calendarYear--; }
-            if (calendarMonth > 11) { calendarMonth = 0;
-                calendarYear++; }
+            if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
             renderCalendar();
         }
 
@@ -456,6 +336,14 @@
         function renderAll() { renderCalendar(); }
 
         renderAll();
+
+        // Refresh if localStorage changed from dashboard
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'flowTasks') {
+                tasks = JSON.parse(localStorage.getItem('flowTasks') || '[]');
+                renderAll();
+            }
+        });
     </script>
 </body>
 </html>
