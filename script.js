@@ -496,53 +496,7 @@ function animateParticles() {
 }
 animateParticles();
 
-// ==================== CARD TILT EFFECT ====================
-var cards = document.querySelectorAll('.card');
-var mouseX = 0, mouseY = 0;
 
-document.addEventListener('mousemove', function(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-
-    cards.forEach(function(card) {
-        var rect = card.getBoundingClientRect();
-        var cardCenterX = rect.left + rect.width / 2;
-        var cardCenterY = rect.top + rect.height / 2;
-        var deltaX = (mouseX - cardCenterX) / rect.width;
-        var deltaY = (mouseY - cardCenterY) / rect.height;
-        var tiltX = deltaY * -4;
-        var tiltY = deltaX * 4;
-        var distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        var scale = 1 + Math.max(0, 0.015 - distance * 0.01);
-
-        card.style.transform = 'perspective(800px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg) scale(' + scale + ')';
-        card.style.transition = 'transform 0.15s ease-out, box-shadow 0.3s';
-
-        if (distance < 0.5) {
-            card.style.boxShadow = '0 12px 40px rgba(0,0,0,' + (0.08 + distance * 0.06) + ')';
-        } else {
-            card.style.boxShadow = '';
-        }
-    });
-});
-
-// Reset on mouse leave
-document.addEventListener('mouseleave', function() {
-    cards.forEach(function(card) {
-        card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
-        card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.6s';
-        card.style.boxShadow = '';
-    });
-});
-
-// ==================== UTILS ====================
-function escapeHtml(text) {
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function renderAll() { renderTaskList(); renderStats(); renderCalendar(); }
 
 // ==================== INIT ====================
 var todayStr = new Date().toISOString().split('T')[0];
