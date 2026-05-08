@@ -72,14 +72,14 @@ body.dark {
     transition: all 0.2s;
 }
 .nav-link:hover {
-    background: var(--accent);
+    background: var(--accent-purple);
     color: #fff;
-    border-color: var(--accent);
+    border-color: var(--accent-purple);
 }
 .nav-link.active {
-    background: var(--accent);
+    background: var(--accent-purple);
     color: #fff;
-    border-color: var(--accent);
+    border-color: var(--accent-purple);
 }
 
 .theme-toggle {
