@@ -7,6 +7,30 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
     </script>
+    <script>
+        (function() {
+            if (!sessionStorage.getItem('navTransition')) {
+                document.documentElement.style.opacity = '0';
+                document.documentElement.style.transition = 'opacity 0.2s ease';
+                window.addEventListener('load', function() {
+                    requestAnimationFrame(function() {
+                        document.documentElement.style.opacity = '1';
+                    });
+                });
+            } else {
+                sessionStorage.removeItem('navTransition');
+            }
+            document.addEventListener('click', function(e) {
+                var link = e.target.closest('.nav-link');
+                if (link && link.href && !link.target) {
+                    e.preventDefault();
+                    sessionStorage.setItem('navTransition', 'true');
+                    document.documentElement.style.opacity = '0';
+                    setTimeout(function() { window.location.href = link.href; }, 200);
+                }
+            });
+        })();
+    </script>
     <style>
         .habits-grid {
             display: grid;
