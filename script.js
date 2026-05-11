@@ -1,190 +1,245 @@
 // ==================== DATA ====================
-var tasks = JSON.parse(localStorage.getItem('flowTasks') || '[]');
+var tasks = [];
 var calendarMonth = new Date().getMonth();
 var calendarYear = new Date().getFullYear();
 var defaultMusic = 'https://www.youtube.com/embed/jfKfPfyJRdk';
-var streakData = JSON.parse(localStorage.getItem('flowStreak') || '{"days":{},"currentStreak":0}');
+var streakData = { days: {}, currentStreak: 0 };
 
-function save() { localStorage.setItem('flowTasks', JSON.stringify(tasks)); }
-function saveStreak() { localStorage.setItem('flowStreak', JSON.stringify(streakData)); }
+// Safe load
+try {
+    var savedTasks = localStorage.getItem('flowTasks');
+    if (savedTasks) tasks = JSON.parse(savedTasks);
+} catch(e) { tasks = []; }
+
+try {
+    var savedStreak = localStorage.getItem('flowStreak');
+    if (savedStreak) streakData = JSON.parse(savedStreak);
+} catch(e) { streakData = { days: {}, currentStreak: 0 }; }
+
+function save() { try { localStorage.setItem('flowTasks', JSON.stringify(tasks)); } catch(e) {} }
+function saveStreak() { try { localStorage.setItem('flowStreak', JSON.stringify(streakData)); } catch(e) {} }
 
 // ==================== NOTIFICATIONS ====================
-function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
+if ('Notification' in window && Notification.permission === 'default') {
+    try { Notification.requestPermission(); } catch(e) {}
 }
-requestNotificationPermission();
 
 function sendNotification(title, body) {
     if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(title, { body: body, icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍅</text></svg>' });
+        try { new Notification(title, { body: body }); } catch(e) {}
     }
 }
 
 // ==================== THEME ====================
 function toggleTheme() {
     document.body.classList.toggle('dark');
-    localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    renderStats();
+    try { localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch(e) {}
+    if (typeof renderStats === 'function') renderStats();
 }
-if (localStorage.getItem('flowTheme') === 'dark') document.body.classList.add('dark');
+try {
+    if (localStorage.getItem('flowTheme') === 'dark') document.body.classList.add('dark');
+} catch(e) {}
 
 // ==================== WEATHER ====================
 function getWeather(lat, lon) {
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current_weather=true')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            var w = data.current_weather;
-            var temp = Math.round(w.temperature);
-            var code = w.weathercode;
-            var emoji = '☀️';
-            if (code <= 3) emoji = '☀️';
-            else if (code <= 48) emoji = '🌫️';
-            else if (code <= 67) emoji = '🌧️';
-            else if (code <= 77) emoji = '❄️';
-            else emoji = '⛈️';
-            document.getElementById('weatherTemp').textContent = temp + '°';
-            document.getElementById('weatherEmoji').textContent = emoji;
-        })
-        .catch(function() { document.getElementById('weatherCity').textContent = 'Unavailable'; });
+    try {
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current_weather=true')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var w = data.current_weather;
+                var temp = Math.round(w.temperature);
+                var code = w.weathercode;
+                var emoji = '☀️';
+                if (code <= 3) emoji = '☀️';
+                else if (code <= 48) emoji = '🌫️';
+                else if (code <= 67) emoji = '🌧️';
+                else if (code <= 77) emoji = '❄️';
+                else emoji = '⛈️';
+                var tempEl = document.getElementById('weatherTemp');
+                var emojiEl = document.getElementById('weatherEmoji');
+                if (tempEl) tempEl.textContent = temp + '°';
+                if (emojiEl) emojiEl.textContent = emoji;
+            }).catch(function() {});
+    } catch(e) {}
 }
 
-if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            getWeather(pos.coords.latitude, pos.coords.longitude);
-            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&zoom=10')
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    document.getElementById('weatherCity').textContent = data.address.city || data.address.town || 'Nearby';
-                })
-                .catch(function() { document.getElementById('weatherCity').textContent = 'Current'; });
-        },
-        function() { document.getElementById('weatherCity').textContent = 'Location off'; }
-    );
-}
+try {
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                getWeather(pos.coords.latitude, pos.coords.longitude);
+                try {
+                    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&zoom=10')
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            var cityEl = document.getElementById('weatherCity');
+                            if (cityEl) cityEl.textContent = data.address.city || data.address.town || 'Nearby';
+                        }).catch(function() {
+                            var cityEl = document.getElementById('weatherCity');
+                            if (cityEl) cityEl.textContent = 'Current';
+                        });
+                } catch(e) {}
+            },
+            function() {
+                var cityEl = document.getElementById('weatherCity');
+                if (cityEl) cityEl.textContent = 'Location off';
+            }
+        );
+    }
+} catch(e) {}
 
 // ==================== TASKS ====================
 function addTask() {
-    var input = document.getElementById('taskInput');
-    var text = input.value.trim();
-    if (!text) return;
-    tasks.push({ id: Date.now(), text: text, done: false, date: null });
-    input.value = '';
-    save();
-    renderAll();
+    try {
+        var input = document.getElementById('taskInput');
+        if (!input) return;
+        var text = input.value.trim();
+        if (!text) return;
+        tasks.push({ id: Date.now(), text: text, done: false, date: null });
+        input.value = '';
+        save();
+        renderAll();
+    } catch(e) { console.log('addTask error:', e); }
 }
 
 function toggleTask(id) {
-    var task = tasks.find(function(t) { return t.id === id; });
-    if (!task) return;
-    var wasDone = task.done;
-    task.done = !task.done;
-    save();
-    if (!wasDone && task.done) {
-        spawnParticles();
-        updateStreak();
-        sendNotification('Task Completed ✅', task.text);
-    }
-    renderAll();
+    try {
+        var task = tasks.find(function(t) { return t.id === id; });
+        if (!task) return;
+        var wasDone = task.done;
+        task.done = !task.done;
+        save();
+        if (!wasDone && task.done) {
+            spawnParticles();
+            updateStreak();
+            sendNotification('Task Completed ✅', task.text);
+        }
+        renderAll();
+    } catch(e) { console.log('toggleTask error:', e); }
 }
 
 function deleteTask(id) {
-    tasks = tasks.filter(function(t) { return t.id !== id; });
-    save();
-    renderAll();
+    try {
+        tasks = tasks.filter(function(t) { return t.id !== id; });
+        save();
+        renderAll();
+    } catch(e) { console.log('deleteTask error:', e); }
 }
 
 function updateTaskDate(id, val) {
-    var task = tasks.find(function(t) { return t.id === id; });
-    if (task) { task.date = val || null; save(); renderAll(); }
+    try {
+        var task = tasks.find(function(t) { return t.id === id; });
+        if (task) { task.date = val || null; save(); renderAll(); }
+    } catch(e) { console.log('updateTaskDate error:', e); }
 }
 
 function updateStreak() {
-    var today = new Date().toISOString().split('T')[0];
-    if (!streakData.days[today]) {
-        streakData.days[today] = true;
-        var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-        streakData.currentStreak = streakData.days[yesterday] ? streakData.currentStreak + 1 : 1;
-        saveStreak();
-    }
+    try {
+        var today = new Date().toISOString().split('T')[0];
+        if (!streakData.days) streakData.days = {};
+        if (!streakData.days[today]) {
+            streakData.days[today] = true;
+            var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            streakData.currentStreak = streakData.days[yesterday] ? (streakData.currentStreak || 0) + 1 : 1;
+            saveStreak();
+        }
+    } catch(e) {}
 }
 
 function getWeekProgress() {
-    var today = new Date();
-    var dayOfWeek = today.getDay();
-    var startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - dayOfWeek);
-    var daysActive = 0;
-    for (var i = 0; i < 7; i++) {
-        var d = new Date(startOfWeek);
-        d.setDate(startOfWeek.getDate() + i);
-        if (streakData.days[d.toISOString().split('T')[0]]) daysActive++;
-    }
-    return { daysActive: daysActive, pct: Math.round((daysActive / 7) * 100) };
+    try {
+        var today = new Date();
+        var dayOfWeek = today.getDay();
+        var startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek);
+        var daysActive = 0;
+        for (var i = 0; i < 7; i++) {
+            var d = new Date(startOfWeek);
+            d.setDate(startOfWeek.getDate() + i);
+            var key = d.toISOString().split('T')[0];
+            if (streakData.days && streakData.days[key]) daysActive++;
+        }
+        return { daysActive: daysActive, pct: Math.round((daysActive / 7) * 100) };
+    } catch(e) { return { daysActive: 0, pct: 0 }; }
 }
 
 function renderTaskList() {
-    var list = document.getElementById('taskList');
-    if (!list) return;
-    if (tasks.length === 0) {
-        list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><small>Add one above</small></div>';
-        return;
-    }
-    list.innerHTML = tasks.sort(function(a, b) { return a.done - b.done; }).map(function(task) {
-        var today = new Date().toISOString().split('T')[0];
-        var isOverdue = task.date && task.date < today && !task.done;
-        return '<li class="task-item">' +
-            '<input type="checkbox" class="task-checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + task.id + ')" onclick="event.stopPropagation()">' +
-            '<div class="task-content" onclick="toggleTask(' + task.id + ')">' +
-            '<div class="task-text ' + (task.done ? 'done' : '') + '">' + escapeHtml(task.text) + '</div>' +
-            '<input type="date" class="date-picker-mini ' + (isOverdue ? 'overdue' : '') + '" value="' + (task.date || '') + '" onchange="updateTaskDate(' + task.id + ',this.value)" onclick="event.stopPropagation()">' +
-            '</div>' +
-            '<button class="btn-danger" onclick="event.stopPropagation();deleteTask(' + task.id + ')">✕</button>' +
-            '</li>';
-    }).join('');
+    try {
+        var list = document.getElementById('taskList');
+        if (!list) return;
+        if (!tasks || tasks.length === 0) {
+            list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><small>Add one above</small></div>';
+            return;
+        }
+        var sorted = tasks.slice().sort(function(a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0); });
+        list.innerHTML = sorted.map(function(task) {
+            var today = new Date().toISOString().split('T')[0];
+            var isOverdue = task.date && task.date < today && !task.done;
+            return '<li class="task-item">' +
+                '<input type="checkbox" class="task-checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + task.id + ')" onclick="event.stopPropagation()">' +
+                '<div class="task-content" onclick="toggleTask(' + task.id + ')">' +
+                '<div class="task-text ' + (task.done ? 'done' : '') + '">' + escapeHtml(task.text) + '</div>' +
+                '<input type="date" class="date-picker-mini ' + (isOverdue ? 'overdue' : '') + '" value="' + (task.date || '') + '" onchange="updateTaskDate(' + task.id + ',this.value)" onclick="event.stopPropagation()">' +
+                '</div>' +
+                '<button class="btn-danger" onclick="event.stopPropagation();deleteTask(' + task.id + ')">✕</button>' +
+                '</li>';
+        }).join('');
+    } catch(e) { console.log('renderTaskList error:', e); }
 }
 
 function renderStats() {
-    var today = new Date().toISOString().split('T')[0];
-    var total = tasks.length;
-    var done = tasks.filter(function(t) { return t.done; }).length;
-    var overdue = tasks.filter(function(t) { return t.date && t.date < today && !t.done; }).length;
-    document.getElementById('totalTasks').textContent = total;
-    document.getElementById('doneTasks').textContent = done;
-    document.getElementById('overdueTasks').textContent = overdue;
-    var wp = getWeekProgress();
-    document.getElementById('streakDays').textContent = wp.daysActive + '/7 days';
-    document.getElementById('streakFill').style.width = wp.pct + '%';
-    var ctx = document.getElementById('pieChart');
-    if (!ctx) return;
-    if (window.pieChart) window.pieChart.destroy();
-    window.pieChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Done', 'Pending'],
-            datasets: [{ data: [done, Math.max(0, total - done)], backgroundColor: ['#34c759', '#0071e3'], borderWidth: 0 }]
-        },
-        options: { cutout: '72%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 10 } } } } }
-    });
+    try {
+        var today = new Date().toISOString().split('T')[0];
+        var total = tasks ? tasks.length : 0;
+        var done = tasks ? tasks.filter(function(t) { return t.done; }).length : 0;
+        var overdue = tasks ? tasks.filter(function(t) { return t.date && t.date < today && !t.done; }).length : 0;
+
+        var totalEl = document.getElementById('totalTasks');
+        var doneEl = document.getElementById('doneTasks');
+        var overdueEl = document.getElementById('overdueTasks');
+        if (totalEl) totalEl.textContent = total;
+        if (doneEl) doneEl.textContent = done;
+        if (overdueEl) overdueEl.textContent = overdue;
+
+        var wp = getWeekProgress();
+        var streakDaysEl = document.getElementById('streakDays');
+        var streakFillEl = document.getElementById('streakFill');
+        if (streakDaysEl) streakDaysEl.textContent = wp.daysActive + '/7 days';
+        if (streakFillEl) streakFillEl.style.width = wp.pct + '%';
+
+        var ctx = document.getElementById('pieChart');
+        if (!ctx) return;
+        if (window.pieChart) window.pieChart.destroy();
+        window.pieChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Done', 'Pending'],
+                datasets: [{ data: [done, Math.max(0, total - done)], backgroundColor: ['#34c759', '#0071e3'], borderWidth: 0 }]
+            },
+            options: { cutout: '72%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 10 } } } } }
+        });
+    } catch(e) { console.log('renderStats error:', e); }
 }
 
 function renderCalendar() {
-    document.getElementById('calMonth').textContent = new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
-    var grid = document.getElementById('calendarGrid');
-    var html = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(function(d) { return '<div class="cal-day-header">' + d + '</div>'; }).join('');
-    var firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
-    var daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    var today = new Date().toISOString().split('T')[0];
-    var taskDates = {};
-    tasks.forEach(function(t) { if (t.date) taskDates[t.date] = true; });
-    for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day other-month"></div>';
-    for (var d = 1; d <= daysInMonth; d++) {
-        var dateStr = calendarYear + '-' + String(calendarMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-        html += '<div class="cal-day' + (dateStr === today ? ' today' : '') + (taskDates[dateStr] ? ' has-task' : '') + '">' + d + '</div>';
-    }
-    grid.innerHTML = html;
+    try {
+        var monthEl = document.getElementById('calMonth');
+        if (monthEl) monthEl.textContent = new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+        var grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+        var html = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(function(d) { return '<div class="cal-day-header">' + d + '</div>'; }).join('');
+        var firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+        var daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+        var today = new Date().toISOString().split('T')[0];
+        var taskDates = {};
+        if (tasks) tasks.forEach(function(t) { if (t.date) taskDates[t.date] = true; });
+        for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day other-month"></div>';
+        for (var d = 1; d <= daysInMonth; d++) {
+            var dateStr = calendarYear + '-' + String(calendarMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            html += '<div class="cal-day' + (dateStr === today ? ' today' : '') + (taskDates[dateStr] ? ' has-task' : '') + '">' + d + '</div>';
+        }
+        grid.innerHTML = html;
+    } catch(e) { console.log('renderCalendar error:', e); }
 }
 
 function changeMonth(d) {
@@ -196,52 +251,51 @@ function changeMonth(d) {
 
 // ==================== EXPORT / IMPORT ====================
 function exportTasks() {
-    var dataStr = JSON.stringify(tasks, null, 2);
-    var blob = new Blob([dataStr], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'flow-tasks-backup-' + new Date().toISOString().split('T')[0] + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    sendNotification('Tasks Exported 📤', 'Your tasks have been downloaded.');
+    try {
+        var dataStr = JSON.stringify(tasks || [], null, 2);
+        var blob = new Blob([dataStr], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'flow-tasks-backup-' + new Date().toISOString().split('T')[0] + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch(e) { alert('Export failed: ' + e.message); }
 }
 
 function importTasks(input) {
-    var file = input.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            var imported = JSON.parse(e.target.result);
-            if (Array.isArray(imported)) {
-                if (confirm('Import ' + imported.length + ' tasks? This will replace your current tasks.')) {
-                    tasks = imported;
-                    save();
-                    renderAll();
-                    sendNotification('Tasks Imported 📥', imported.length + ' tasks loaded.');
-                }
-            } else {
-                alert('Invalid backup file.');
-            }
-        } catch (err) {
-            alert('Could not read file. Make sure it\'s a valid JSON backup.');
-        }
-    };
-    reader.readAsText(file);
+    try {
+        var file = input.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    if (confirm('Import ' + imported.length + ' tasks? This will replace your current tasks.')) {
+                        tasks = imported;
+                        save();
+                        renderAll();
+                    }
+                } else { alert('Invalid backup file.'); }
+            } catch(err) { alert('Could not read file.'); }
+        };
+        reader.readAsText(file);
+    } catch(e) { alert('Import failed: ' + e.message); }
     input.value = '';
 }
 
-// ==================== POMODORO (endTime-based) ====================
+// ==================== POMODORO ====================
 var pomoState = {
     totalSeconds: 25 * 60,
     isRunning: false,
     isBreak: false,
-    sessions: parseInt(localStorage.getItem('pomoSessions') || '0'),
+    sessions: 0,
     endTime: null,
     interval: null,
     remaining: 25 * 60
 };
+try { pomoState.sessions = parseInt(localStorage.getItem('pomoSessions') || '0'); } catch(e) {}
 
 function getPomoRemaining() {
     if (!pomoState.isRunning || !pomoState.endTime) return pomoState.remaining;
@@ -249,60 +303,69 @@ function getPomoRemaining() {
 }
 
 function renderPomodoro() {
-    var remaining = pomoState.isRunning ? getPomoRemaining() : pomoState.remaining;
-    document.getElementById('pomoTime').textContent = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
-    document.getElementById('pomoLabel').textContent = pomoState.isBreak ? 'Break' : 'Focus';
-    document.getElementById('pomoStart').textContent = pomoState.isRunning ? '⏸' : '▶';
-    document.getElementById('pomoStart').classList.toggle('active', pomoState.isRunning);
-    document.getElementById('pomoSessions').textContent = 'Sessions: ' + pomoState.sessions;
+    try {
+        var remaining = pomoState.isRunning ? getPomoRemaining() : pomoState.remaining;
+        var timeEl = document.getElementById('pomoTime');
+        var labelEl = document.getElementById('pomoLabel');
+        var startEl = document.getElementById('pomoStart');
+        var sessionsEl = document.getElementById('pomoSessions');
+        if (timeEl) timeEl.textContent = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
+        if (labelEl) labelEl.textContent = pomoState.isBreak ? 'Break' : 'Focus';
+        if (startEl) { startEl.textContent = pomoState.isRunning ? '⏸' : '▶'; startEl.classList.toggle('active', pomoState.isRunning); }
+        if (sessionsEl) sessionsEl.textContent = 'Sessions: ' + pomoState.sessions;
+    } catch(e) {}
 }
 
 function togglePomodoro() {
-    if (pomoState.isRunning) {
-        clearInterval(pomoState.interval);
-        pomoState.remaining = getPomoRemaining();
-        pomoState.isRunning = false;
-        pomoState.endTime = null;
-        pomoState.interval = null;
-    } else {
-        pomoState.isRunning = true;
-        pomoState.endTime = Date.now() + pomoState.remaining * 1000;
-        pomoState.interval = setInterval(function() {
-            var remaining = getPomoRemaining();
-            if (remaining <= 0) {
-                clearInterval(pomoState.interval);
-                pomoState.isRunning = false;
-                pomoState.endTime = null;
-                pomoState.interval = null;
-                if (!pomoState.isBreak) {
-                    pomoState.sessions++;
-                    localStorage.setItem('pomoSessions', pomoState.sessions);
-                    sendNotification('Pomodoro Complete! 🍅', 'Spin the wheel for your break activity!');
-                    showWheel();
-                } else {
-                    sendNotification('Break Over! ☕', 'Time to focus again!');
+    try {
+        if (pomoState.isRunning) {
+            clearInterval(pomoState.interval);
+            pomoState.remaining = getPomoRemaining();
+            pomoState.isRunning = false;
+            pomoState.endTime = null;
+            pomoState.interval = null;
+        } else {
+            pomoState.isRunning = true;
+            pomoState.endTime = Date.now() + pomoState.remaining * 1000;
+            pomoState.interval = setInterval(function() {
+                var remaining = getPomoRemaining();
+                if (remaining <= 0) {
+                    clearInterval(pomoState.interval);
+                    pomoState.isRunning = false;
+                    pomoState.endTime = null;
+                    pomoState.interval = null;
+                    if (!pomoState.isBreak) {
+                        pomoState.sessions++;
+                        try { localStorage.setItem('pomoSessions', pomoState.sessions); } catch(e) {}
+                        sendNotification('Pomodoro Complete!', 'Spin the wheel for your break!');
+                        if (typeof showWheel === 'function') showWheel();
+                    } else {
+                        sendNotification('Break Over!', 'Time to focus again!');
+                    }
+                    pomoState.isBreak = !pomoState.isBreak;
+                    pomoState.totalSeconds = pomoState.isBreak ? 5 * 60 : 25 * 60;
+                    pomoState.remaining = pomoState.totalSeconds;
+                    renderPomodoro();
+                    return;
                 }
-                pomoState.isBreak = !pomoState.isBreak;
-                pomoState.totalSeconds = pomoState.isBreak ? 5 * 60 : 25 * 60;
-                pomoState.remaining = pomoState.totalSeconds;
                 renderPomodoro();
-                return;
-            }
-            renderPomodoro();
-        }, 250);
-    }
-    renderPomodoro();
+            }, 250);
+        }
+        renderPomodoro();
+    } catch(e) {}
 }
 
 function resetPomodoro() {
-    clearInterval(pomoState.interval);
-    pomoState.isRunning = false;
-    pomoState.isBreak = false;
-    pomoState.endTime = null;
-    pomoState.interval = null;
-    pomoState.totalSeconds = 25 * 60;
-    pomoState.remaining = 25 * 60;
-    renderPomodoro();
+    try {
+        clearInterval(pomoState.interval);
+        pomoState.isRunning = false;
+        pomoState.isBreak = false;
+        pomoState.endTime = null;
+        pomoState.interval = null;
+        pomoState.totalSeconds = 25 * 60;
+        pomoState.remaining = 25 * 60;
+        renderPomodoro();
+    } catch(e) {}
 }
 
 document.addEventListener('visibilitychange', function() {
@@ -315,11 +378,11 @@ document.addEventListener('visibilitychange', function() {
             pomoState.interval = null;
             if (!pomoState.isBreak) {
                 pomoState.sessions++;
-                localStorage.setItem('pomoSessions', pomoState.sessions);
-                sendNotification('Pomodoro Complete! 🍅', 'Spin the wheel for your break activity!');
-                showWheel();
+                try { localStorage.setItem('pomoSessions', pomoState.sessions); } catch(e) {}
+                sendNotification('Pomodoro Complete!', 'Spin the wheel!');
+                if (typeof showWheel === 'function') showWheel();
             } else {
-                sendNotification('Break Over! ☕', 'Time to focus again!');
+                sendNotification('Break Over!', 'Time to focus!');
             }
             pomoState.isBreak = !pomoState.isBreak;
             pomoState.totalSeconds = pomoState.isBreak ? 5 * 60 : 25 * 60;
@@ -331,32 +394,31 @@ document.addEventListener('visibilitychange', function() {
 
 // ==================== SPIN WHEEL ====================
 var wheelOptions = [
-    { label: '🚶 Walk', color: '#34c759' },
-    { label: '💧 Water', color: '#0071e3' },
-    { label: '👀 Rest Eyes', color: '#af52de' },
-    { label: '📱 Phone', color: '#ff9500' },
-    { label: '🪟 Look Outside', color: '#5ac8fa' },
-    { label: '🧘 Breathe', color: '#ff3b30' },
-    { label: '🎵 Music', color: '#ff2d55' },
-    { label: '✍️ Doodle', color: '#ffcc00' }
+    { label: 'Walk', color: '#34c759' },
+    { label: 'Water', color: '#0071e3' },
+    { label: 'Rest Eyes', color: '#af52de' },
+    { label: 'Phone', color: '#ff9500' },
+    { label: 'Look Outside', color: '#5ac8fa' },
+    { label: 'Breathe', color: '#ff3b30' },
+    { label: 'Music', color: '#ff2d55' },
+    { label: 'Doodle', color: '#ffcc00' }
 ];
 
 var wheelCanvas = document.getElementById('wheelCanvas');
-var wheelCtx = wheelCanvas.getContext('2d');
+var wheelCtx = wheelCanvas ? wheelCanvas.getContext('2d') : null;
 var wheelSpinning = false;
 var wheelAngle = 0;
 
 function drawWheel(rotation) {
+    if (!wheelCtx) return;
     var cx = 160, cy = 160, radius = 150;
     var slices = wheelOptions.length;
     var arcSize = (2 * Math.PI) / slices;
     wheelCtx.clearRect(0, 0, 320, 320);
-
     wheelCtx.save();
     wheelCtx.translate(cx, cy);
     wheelCtx.rotate(rotation);
     wheelCtx.translate(-cx, -cy);
-
     for (var i = 0; i < slices; i++) {
         var startAngle = i * arcSize - Math.PI / 2;
         var endAngle = startAngle + arcSize;
@@ -369,7 +431,6 @@ function drawWheel(rotation) {
         wheelCtx.strokeStyle = 'rgba(255,255,255,0.3)';
         wheelCtx.lineWidth = 2;
         wheelCtx.stroke();
-
         wheelCtx.save();
         wheelCtx.translate(cx, cy);
         wheelCtx.rotate(startAngle + arcSize / 2);
@@ -379,7 +440,6 @@ function drawWheel(rotation) {
         wheelCtx.fillText(wheelOptions[i].label, 95, 5);
         wheelCtx.restore();
     }
-
     wheelCtx.beginPath();
     wheelCtx.arc(cx, cy, 25, 0, 2 * Math.PI);
     wheelCtx.fillStyle = '#fff';
@@ -387,8 +447,7 @@ function drawWheel(rotation) {
     wheelCtx.fillStyle = '#1d1d1f';
     wheelCtx.font = 'bold 14px -apple-system, sans-serif';
     wheelCtx.textAlign = 'center';
-    wheelCtx.fillText('🎯', cx, cy + 5);
-
+    wheelCtx.fillText('GO', cx, cy + 5);
     wheelCtx.restore();
 }
 
@@ -401,12 +460,15 @@ function getWheelResult(finalAngle) {
 }
 
 function showWheel() {
-    document.getElementById('wheelOverlay').classList.add('show');
-    document.getElementById('wheelResult').classList.remove('show');
-    document.getElementById('wheelResult').textContent = '';
+    var overlay = document.getElementById('wheelOverlay');
+    if (!overlay) return;
+    overlay.classList.add('show');
+    var resultEl = document.getElementById('wheelResult');
+    if (resultEl) { resultEl.classList.remove('show'); resultEl.textContent = ''; }
     wheelSpinning = false;
     wheelAngle = Math.random() * 360;
-    document.getElementById('wheelCanvas').style.transform = 'rotate(' + wheelAngle + 'deg)';
+    var canvas = document.getElementById('wheelCanvas');
+    if (canvas) canvas.style.transform = 'rotate(' + wheelAngle + 'deg)';
     drawWheel(wheelAngle * Math.PI / 180);
     setTimeout(spinWheel, 400);
 }
@@ -414,54 +476,64 @@ function showWheel() {
 function spinWheel() {
     if (wheelSpinning) return;
     wheelSpinning = true;
-    document.getElementById('wheelResult').classList.remove('show');
+    var resultEl = document.getElementById('wheelResult');
+    if (resultEl) resultEl.classList.remove('show');
     var extraSpins = 5 + Math.random() * 5;
     var totalRotation = extraSpins * 360 + Math.random() * 360;
     wheelAngle += totalRotation;
-    document.getElementById('wheelCanvas').style.transform = 'rotate(' + wheelAngle + 'deg)';
-
+    var canvas = document.getElementById('wheelCanvas');
+    if (canvas) canvas.style.transform = 'rotate(' + wheelAngle + 'deg)';
     setTimeout(function() {
         wheelSpinning = false;
         var result = getWheelResult(wheelAngle);
-        document.getElementById('wheelResult').textContent = result.label + ' — Enjoy your break!';
-        document.getElementById('wheelResult').classList.add('show');
-        if (!pomoState.isRunning && pomoState.isBreak && pomoState.remaining === 5 * 60) {
-            togglePomodoro();
-        }
+        var resultEl2 = document.getElementById('wheelResult');
+        if (resultEl2) { resultEl2.textContent = result.label + ' - Enjoy your break!'; resultEl2.classList.add('show'); }
     }, 4200);
 }
 
 function closeWheel() {
-    document.getElementById('wheelOverlay').classList.remove('show');
-    if (!pomoState.isRunning && pomoState.isBreak) {
-        togglePomodoro();
-    }
+    var overlay = document.getElementById('wheelOverlay');
+    if (overlay) overlay.classList.remove('show');
+    if (!pomoState.isRunning && pomoState.isBreak) togglePomodoro();
 }
 
-drawWheel(0);
+if (wheelCtx) drawWheel(0);
 
 // ==================== MUSIC ====================
-function toggleMusic() { document.getElementById('musicPanel').classList.toggle('open'); }
+function toggleMusic() {
+    var panel = document.getElementById('musicPanel');
+    if (panel) panel.classList.toggle('open');
+}
 
 function updateMusic() {
-    var url = document.getElementById('musicUrl').value.trim();
-    var embed = defaultMusic;
-    if (url.indexOf('youtube.com/embed/') !== -1) embed = url.split('?')[0];
-    else { var m = url.match(/(?:v=|\/)([\w-]{11})/); if (m) embed = 'https://www.youtube.com/embed/' + m[1]; }
-    localStorage.setItem('flowMusic', embed);
-    document.getElementById('musicContainer').innerHTML = '<iframe src="' + embed + '" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;width:100%;height:180px;border:none;"></iframe>';
+    try {
+        var urlInput = document.getElementById('musicUrl');
+        if (!urlInput) return;
+        var url = urlInput.value.trim();
+        var embed = defaultMusic;
+        if (url.indexOf('youtube.com/embed/') !== -1) embed = url.split('?')[0];
+        else { var m = url.match(/(?:v=|\/)([\w-]{11})/); if (m) embed = 'https://www.youtube.com/embed/' + m[1]; }
+        localStorage.setItem('flowMusic', embed);
+        var container = document.getElementById('musicContainer');
+        if (container) container.innerHTML = '<iframe src="' + embed + '" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;width:100%;height:180px;border:none;"></iframe>';
+    } catch(e) {}
 }
 
 function renderMusic(url) {
-    document.getElementById('musicContainer').innerHTML = '<iframe src="' + url + '" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;width:100%;height:180px;border:none;"></iframe>';
+    try {
+        var container = document.getElementById('musicContainer');
+        if (container) container.innerHTML = '<iframe src="' + url + '" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;width:100%;height:180px;border:none;"></iframe>';
+    } catch(e) {}
 }
 
 // ==================== PARTICLES ====================
-var canvas = document.getElementById('particlesCanvas');
-var pctx = canvas.getContext('2d');
+var particlesCanvas = document.getElementById('particlesCanvas');
+var pctx = particlesCanvas ? particlesCanvas.getContext('2d') : null;
 var particles = [];
 
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function resizeCanvas() {
+    if (particlesCanvas) { particlesCanvas.width = window.innerWidth; particlesCanvas.height = window.innerHeight; }
+}
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
@@ -481,7 +553,8 @@ function spawnParticles() {
 }
 
 function animateParticles() {
-    pctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!pctx) return;
+    pctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
     particles = particles.filter(function(p) { return p.life > 0; });
     particles.forEach(function(p) {
         p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life -= p.decay;
@@ -494,24 +567,36 @@ function animateParticles() {
     pctx.globalAlpha = 1;
     requestAnimationFrame(animateParticles);
 }
-animateParticles();
+if (pctx) animateParticles();
 
+// ==================== UTILS ====================
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
 
+function renderAll() { renderTaskList(); renderStats(); renderCalendar(); }
 
 // ==================== INIT ====================
-var todayStr = new Date().toISOString().split('T')[0];
-if (tasks.some(function(t) { return t.done; })) {
-    if (!streakData.days) streakData = { days: {}, currentStreak: 0 };
-    if (!streakData.days[todayStr]) {
-        var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-        streakData.days[todayStr] = true;
-        streakData.currentStreak = streakData.days[yesterday] ? (streakData.currentStreak || 0) + 1 : 1;
-        saveStreak();
+try {
+    var todayStr = new Date().toISOString().split('T')[0];
+    if (tasks && tasks.some(function(t) { return t.done; })) {
+        if (!streakData.days) streakData.days = {};
+        if (!streakData.days[todayStr]) {
+            var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            streakData.days[todayStr] = true;
+            streakData.currentStreak = streakData.days[yesterday] ? (streakData.currentStreak || 0) + 1 : 1;
+            saveStreak();
+        }
     }
-}
+} catch(e) {}
 
 renderAll();
 renderPomodoro();
-var savedMusic = localStorage.getItem('flowMusic') || defaultMusic;
-renderMusic(savedMusic);
-if (savedMusic !== defaultMusic) document.getElementById('musicUrl').value = savedMusic;
+try {
+    var savedMusic = localStorage.getItem('flowMusic') || defaultMusic;
+    renderMusic(savedMusic);
+    var musicUrlInput = document.getElementById('musicUrl');
+    if (musicUrlInput && savedMusic !== defaultMusic) musicUrlInput.value = savedMusic;
+} catch(e) {}
