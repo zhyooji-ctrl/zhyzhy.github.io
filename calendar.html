@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flow • Calendar</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            if (!sessionStorage.getItem('navTransition')) {
+                document.documentElement.style.opacity = '0';
+                document.documentElement.style.transition = 'opacity 0.2s ease';
+                window.addEventListener('load', function() {
+                    requestAnimationFrame(function() {
+                        document.documentElement.style.opacity = '1';
+                    });
+                });
+            } else {
+                sessionStorage.removeItem('navTransition');
+            }
+            document.addEventListener('click', function(e) {
+                var link = e.target.closest('.nav-link');
+                if (link && link.href && !link.target) {
+                    e.preventDefault();
+                    sessionStorage.setItem('navTransition', 'true');
+                    document.documentElement.style.opacity = '0';
+                    setTimeout(function() { window.location.href = link.href; }, 200);
+                }
+            });
+        })();
+    </script>
     <style>
         .cal-nav-row {
             display: flex;
