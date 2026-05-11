@@ -3,34 +3,1089 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flow • Task Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Flow • Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
     </script>
-    <script>
-        (function() {
-            if (!sessionStorage.getItem('navTransition')) {
-                document.documentElement.style.opacity = '0';
-                document.documentElement.style.transition = 'opacity 0.2s ease';
-                window.addEventListener('load', function() {
-                    requestAnimationFrame(function() {
-                        document.documentElement.style.opacity = '1';
-                    });
-                });
-            } else {
-                sessionStorage.removeItem('navTransition');
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.72);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #0071e3;
+            --accent-purple: #af52de;
+            --green: #34c759;
+            --red: #ff3b30;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+            transition: background 0.4s, color 0.4s;
+            overflow-x: hidden;
+        }
+
+        body.dark {
+            --bg: #1c1c1e;
+            --card-bg: rgba(44, 44, 46, 0.82);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text: #f5f5f7;
+            --text-secondary: #98989d;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 120px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+        .nav-link:hover {
+            background: var(--accent-purple);
+            color: #fff;
+            border-color: var(--accent-purple);
+        }
+        .nav-link.active {
+            background: var(--accent-purple);
+            color: #fff;
+            border-color: var(--accent-purple);
+        }
+        .theme-toggle {
+            width: 52px;
+            height: 28px;
+            background: rgba(120, 120, 128, 0.2);
+            border-radius: 28px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        body.dark .theme-toggle::after {
+            transform: translateX(24px);
+            background: #1c1c1e;
+        }
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            white-space: nowrap;
+        }
+        .weather-widget .temp {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        /* Tab panels */
+        .tab-panel {
+            display: none;
+            animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
             }
-            document.addEventListener('click', function(e) {
-                var link = e.target.closest('.nav-link');
-                if (link && link.href && !link.target) {
-                    e.preventDefault();
-                    sessionStorage.setItem('navTransition', 'true');
-                    document.documentElement.style.opacity = '0';
-                    setTimeout(function() { window.location.href = link.href; }, 200);
-                }
-            });
-        })();
-    </script>
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 18px;
+        }
+        @media (max-width: 1100px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 22px 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s, border-color 0.35s;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-purple);
+        }
+        .dark .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+        .span-2 {
+            grid-column: span 2;
+        }
+        @media (max-width: 1100px) {
+            .span-2 {
+                grid-column: span 1;
+            }
+        }
+
+        .task-input-wrap {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .task-input-wrap input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(128, 128, 128, 0.06);
+            border: 1px solid transparent;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            color: var(--text);
+            outline: none;
+            font-family: inherit;
+        }
+        .task-input-wrap input:focus {
+            border-color: var(--accent);
+            background: rgba(128, 128, 128, 0.04);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+        }
+        .task-input-wrap input::placeholder {
+            color: var(--text-secondary);
+        }
+        .btn {
+            padding: 10px 16px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #0077ed;
+            transform: scale(1.03);
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--red);
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+        .btn-danger:hover {
+            background: rgba(255, 59, 48, 0.08);
+            border-radius: 12px;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            border-radius: 12px;
+        }
+        .task-list {
+            list-style: none;
+            overflow-y: auto;
+            max-height: 300px;
+            padding-right: 4px;
+            flex: 1;
+        }
+        .task-list::-webkit-scrollbar {
+            width: 3px;
+        }
+        .task-list::-webkit-scrollbar-thumb {
+            background: rgba(128, 128, 128, 0.2);
+            border-radius: 3px;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .task-item:hover {
+            background: rgba(128, 128, 128, 0.06);
+        }
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #c7c7cc;
+            appearance: none;
+            cursor: pointer;
+            flex-shrink: 0;
+            background: transparent;
+            position: relative;
+        }
+        .dark .task-checkbox {
+            border-color: #636366;
+        }
+        .task-checkbox:checked {
+            background: var(--green);
+            border-color: var(--green);
+        }
+        .task-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .task-text {
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+        .task-text.done {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        .date-picker-mini {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 2px 0;
+        }
+        .date-picker-mini.overdue {
+            color: var(--red);
+            font-weight: 600;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .stat-pill {
+            flex: 1;
+            text-align: center;
+            padding: 12px 6px;
+            border-radius: 16px;
+            background: rgba(128, 128, 128, 0.04);
+        }
+        .stat-num {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .stat-pill.total .stat-num {
+            color: var(--accent);
+        }
+        .stat-pill.done .stat-num {
+            color: var(--green);
+        }
+        .stat-pill.overdue .stat-num {
+            color: var(--red);
+        }
+        .stat-lbl {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .chart-wrap {
+            flex: 1;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .streak-bar-wrap {
+            margin-top: 8px;
+        }
+        .streak-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .streak-bar {
+            height: 8px;
+            border-radius: 8px;
+            background: rgba(128, 128, 128, 0.1);
+            overflow: hidden;
+        }
+        .streak-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #ff9500, #ff5e3a);
+            transition: width 0.6s;
+            width: 0%;
+        }
+
+        .mini-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            text-align: center;
+        }
+        .cal-day-header {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 4px 0;
+        }
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            cursor: pointer;
+            position: relative;
+        }
+        .cal-day:hover {
+            background: rgba(128, 128, 128, 0.1);
+        }
+        .cal-day.today {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+        }
+        .cal-day.has-task::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .cal-day.today.has-task::after {
+            background: #fff;
+        }
+        .cal-day.other-month {
+            color: transparent;
+            pointer-events: none;
+        }
+        .cal-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .cal-month {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .cal-nav button {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(128, 128, 128, 0.08);
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+
+        .pomo-time {
+            font-size: 3rem;
+            font-weight: 200;
+            text-align: center;
+            font-family: 'SF Mono', monospace;
+            letter-spacing: -2px;
+        }
+        .pomo-label {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .pomo-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .pomo-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(128, 128, 128, 0.06);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pomo-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .pomo-sessions {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .wheel-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .wheel-overlay.show {
+            display: flex;
+        }
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+        }
+        .wheel-canvas {
+            width: 100%;
+            height: 100%;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-top: 28px solid var(--accent);
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        .wheel-result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            background: var(--accent);
+            padding: 12px 24px;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .wheel-result.show {
+            opacity: 1;
+        }
+        .wheel-close {
+            margin-top: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .music-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+        }
+        .music-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            font-size: 1.3rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 0 14px rgba(255, 0, 0, 0);
+            }
+        }
+        .music-panel {
+            display: none;
+            position: absolute;
+            bottom: 64px;
+            right: 0;
+            width: 360px;
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--card-border);
+        }
+        .music-panel.open {
+            display: block;
+        }
+        .music-panel iframe {
+            border-radius: 14px;
+            width: 100%;
+            height: 180px;
+            border: none;
+        }
+        .music-url-input {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .music-url-input input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(128, 128, 128, 0.06);
+            border: 1px solid transparent;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--text);
+            outline: none;
+            font-family: inherit;
+        }
+        .music-url-input input:focus {
+            border-color: #ff0000;
+        }
+        .music-url-input button {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: none;
+            background: #ff0000;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .music-hint {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            text-align: center;
+        }
+        .links-section {
+            margin-bottom: 12px;
+        }
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .link-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .link-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: rgba(128, 128, 128, 0.06);
+            border: 1px solid transparent;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .link-chip:hover {
+            background: rgba(128, 128, 128, 0.12);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .social-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 0;
+        }
+        .social-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .social-icon:hover {
+            transform: scale(1.15);
+        }
+        .social-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-secondary);
+        }
+        .social-icon.instagram:hover svg {
+            fill: #e4405f;
+        }
+        .social-icon.facebook:hover svg {
+            fill: #1877f2;
+        }
+        .social-icon.x:hover svg {
+            fill: #000;
+        }
+        .dark .social-icon.x:hover svg {
+            fill: #fff;
+        }
+        .social-icon.pinterest:hover svg {
+            fill: #bd081c;
+        }
+
+        #particlesCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 30px;
+            font-size: 0.85rem;
+        }
+
+        /* ==================== CALENDAR PAGE STYLES ==================== */
+        .cal-nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .cal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .cal-nav-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .cal-nav-btns button {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(128, 128, 128, 0.06);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        .cal-nav-btns button:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .cal-nav-btns .today-btn {
+            width: auto;
+            padding: 0 14px;
+            border-radius: 18px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .cal-day-cell {
+            aspect-ratio: 1;
+            padding: 6px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8rem;
+        }
+        .cal-day-cell:hover {
+            background: rgba(128, 128, 128, 0.06);
+        }
+        .cal-day-cell.today {
+            background: rgba(0, 113, 227, 0.08);
+            border: 1px solid var(--accent);
+        }
+        .cal-day-cell.other-month {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        .cal-day-num {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .cal-day-cell.today .cal-day-num {
+            color: var(--accent);
+        }
+        .cal-day-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            flex: 1;
+        }
+        .cal-task-dot {
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cal-task-dot.done {
+            text-decoration: line-through;
+            opacity: 0.4;
+        }
+        .cal-task-dot.pending {
+            background: rgba(0, 113, 227, 0.12);
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .cal-task-dot.overdue {
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--red);
+            font-weight: 600;
+        }
+        @media (max-width: 800px) {
+            .cal-day-cell {
+                min-height: 60px;
+                padding: 4px;
+                font-size: 0.7rem;
+            }
+            .cal-task-dot {
+                font-size: 0.6rem;
+                padding: 1px 3px;
+            }
+        }
+        .upcoming-section {
+            margin-top: 20px;
+        }
+        .upcoming-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .upcoming-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .upcoming-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(128, 128, 128, 0.04);
+            font-size: 0.85rem;
+        }
+        .upcoming-date {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--accent);
+            min-width: 50px;
+        }
+        .upcoming-text {
+            flex: 1;
+        }
+        .upcoming-text.done {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        .upcoming-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .upcoming-badge.done {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--green);
+        }
+        .upcoming-badge.pending {
+            background: rgba(0, 113, 227, 0.12);
+            color: var(--accent);
+        }
+        .upcoming-badge.overdue {
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--red);
+        }
+
+        /* ==================== HABITS PAGE STYLES ==================== */
+        .habits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 18px;
+        }
+        @media (max-width: 1100px) {
+            .habits-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 700px) {
+            .habits-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .water-bottle-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .water-bottle {
+            width: 70px;
+            height: 180px;
+            border: 3px solid #5ac8fa;
+            border-radius: 20px 20px 10px 10px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(90, 200, 250, 0.05);
+            box-shadow: 0 4px 15px rgba(90, 200, 250, 0.15);
+        }
+        .water-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #5ac8fa, #0071e3);
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 0 7px 7px;
+        }
+        .water-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .water-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .water-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(128, 128, 128, 0.08);
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .water-btn:hover {
+            background: #5ac8fa;
+            color: #fff;
+            border-color: #5ac8fa;
+        }
+        .water-count {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #5ac8fa;
+        }
+        .habit-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 0;
+        }
+        .habit-icon {
+            font-size: 2.5rem;
+        }
+        .habit-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .habit-toggle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--card-border);
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+        .habit-toggle.done {
+            background: #af52de;
+            border-color: #af52de;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(175, 82, 222, 0.3);
+        }
+        .habit-streak {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .habit-streak strong {
+            color: #af52de;
+        }
+        .habits-chart-wrap {
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .week-dots {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 6px;
+        }
+        .week-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(128, 128, 128, 0.15);
+            transition: all 0.3s;
+        }
+        .week-dot.filled {
+            background: #af52de;
+        }
+        .week-dot.today {
+            border: 2px solid #af52de;
+            background: transparent;
+        }
+    </style>
 </head>
 <body>
     <canvas id="particlesCanvas"></canvas>
@@ -48,10 +1103,10 @@
         <div class="header">
             <h1>Flow</h1>
             <div class="header-row">
-                <a href="index.html" class="nav-link active">Dashboard</a>
-                <a href="calendar.html" class="nav-link">📅 Calendar</a>
-                <a href="habits.html" class="nav-link">💧 Habits</a>
-                <div class="weather-widget" id="weatherWidget">
+                <button class="nav-link active" onclick="switchTab('dashboard')" id="navDashboard">Dashboard</button>
+                <button class="nav-link" onclick="switchTab('calendar')" id="navCalendar">📅 Calendar</button>
+                <button class="nav-link" onclick="switchTab('habits')" id="navHabits">💧 Habits</button>
+                <div class="weather-widget">
                     <span id="weatherEmoji">☁️</span>
                     <span class="temp" id="weatherTemp">--°</span>
                     <span id="weatherCity">Loading...</span>
@@ -60,95 +1115,131 @@
             </div>
         </div>
 
-        <div class="grid">
-            <div class="card span-2">
-                <div class="card-title">📋 Tasks</div>
-                <div class="task-input-wrap">
-                    <input type="text" id="taskInput" placeholder="Add a new task..." onkeydown="if(event.key==='Enter')addTask()">
-                    <button class="btn btn-primary" onclick="addTask()">Add</button>
+        <!-- DASHBOARD TAB -->
+        <div class="tab-panel active" id="tabDashboard">
+            <div class="grid">
+                <div class="card span-2">
+                    <div class="card-title">📋 Tasks</div>
+                    <div class="task-input-wrap">
+                        <input type="text" id="taskInput" placeholder="Add a new task..." onkeydown="if(event.key==='Enter')addTask()">
+                        <button class="btn btn-primary" onclick="addTask()">Add</button>
+                    </div>
+                    <ul class="task-list" id="taskList"></ul>
+                    <div style="margin-top:10px;display:flex;gap:8px;">
+                        <button class="btn btn-sm" onclick="exportTasks()" style="background:rgba(128,128,128,0.1);color:var(--text);">📤 Export</button>
+                        <button class="btn btn-sm" onclick="document.getElementById('importFile').click()" style="background:rgba(128,128,128,0.1);color:var(--text);">📥 Import</button>
+                        <input type="file" id="importFile" accept=".json" onchange="importTasks(this)" style="display:none;">
+                    </div>
                 </div>
-                <ul class="task-list" id="taskList"></ul>
-                <div style="margin-top:10px;display:flex;gap:8px;">
-                    <button class="btn btn-sm" onclick="exportTasks()" style="background:rgba(128,128,128,0.1);color:var(--text);">📤 Export</button>
-                    <button class="btn btn-sm" onclick="document.getElementById('importFile').click()" style="background:rgba(128,128,128,0.1);color:var(--text);">📥 Import</button>
-                    <input type="file" id="importFile" accept=".json" onchange="importTasks(this)" style="display:none;">
+                <div class="card">
+                    <div class="card-title">📅 Calendar</div>
+                    <div class="cal-header-row">
+                        <span class="cal-month" id="calMonth"></span>
+                        <div class="cal-nav">
+                            <button onclick="changeMonth(-1)">◀</button>
+                            <button onclick="changeMonth(1)">▶</button>
+                        </div>
+                    </div>
+                    <div class="mini-cal-grid" id="calendarGrid"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Progress</div>
+                    <div class="stats-row">
+                        <div class="stat-pill total"><div class="stat-num" id="totalTasks">0</div><div class="stat-lbl">Total</div></div>
+                        <div class="stat-pill done"><div class="stat-num" id="doneTasks">0</div><div class="stat-lbl">Done</div></div>
+                        <div class="stat-pill overdue"><div class="stat-num" id="overdueTasks">0</div><div class="stat-lbl">Overdue</div></div>
+                    </div>
+                    <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+                    <div class="streak-bar-wrap">
+                        <div class="streak-label"><span>Weekly Progress</span><span id="streakDays">0/7 days</span></div>
+                        <div class="streak-bar"><div class="streak-fill" id="streakFill"></div></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🍅 Pomodoro</div>
+                    <div class="pomo-time" id="pomoTime">25:00</div>
+                    <div class="pomo-label" id="pomoLabel">Focus</div>
+                    <div class="pomo-controls">
+                        <button class="pomo-btn" id="pomoStart" onclick="togglePomodoro()">▶</button>
+                        <button class="pomo-btn" onclick="resetPomodoro()">↺</button>
+                    </div>
+                    <div class="pomo-sessions" id="pomoSessions">Sessions: 0</div>
+                </div>
+                <div class="card span-2">
+                    <div class="card-title">🔗 Quick Links</div>
+                    <div class="links-section">
+                        <div class="section-label">Productivity</div>
+                        <div class="link-chips">
+                            <a href="https://app.remarkable.com/" target="_blank" class="link-chip">🖊️ Remarkable</a>
+                            <a href="https://excel.cloud.microsoft.com/" target="_blank" class="link-chip">📊 Excel</a>
+                            <a href="https://word.cloud.microsoft.com/" target="_blank" class="link-chip">📝 Word</a>
+                            <a href="https://calendar.google.com/calendar/u/2/r" target="_blank" class="link-chip">📅 Calendar</a>
+                        </div>
+                    </div>
+                    <div class="links-section" style="margin-top:12px;">
+                        <div class="section-label">🎓 NAIT</div>
+                        <div class="link-chips">
+                            <a href="https://my.nait.ca/default.aspx" target="_blank" class="link-chip">🏫 NAIT Portal</a>
+                            <a href="https://lms.nait.ca/d2l/home/118001" target="_blank" class="link-chip">💻 COMP 2100</a>
+                            <a href="https://lms.nait.ca/d2l/home/118003" target="_blank" class="link-chip">🔒 SECR 2000</a>
+                            <a href="https://lms.nait.ca/d2l/home/92912" target="_blank" class="link-chip">📖 ENGL 1238</a>
+                        </div>
+                    </div>
+                    <div class="social-bar" style="margin-top:14px;">
+                        <a href="https://www.facebook.com/shaankenji.castro" target="_blank" class="social-icon facebook" title="Facebook"><svg viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg></a>
+                        <a href="https://www.instagram.com/zhyo_ozhy/" target="_blank" class="social-icon instagram" title="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                        <a href="https://x.com/kassin0_0zhy" target="_blank" class="social-icon x" title="X"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                        <a href="https://ca.pinterest.com/jijislifestyle/" target="_blank" class="social-icon pinterest" title="Pinterest"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/></svg></a>
+                    </div>
                 </div>
             </div>
+        </div>
 
+        <!-- CALENDAR TAB -->
+        <div class="tab-panel" id="tabCalendar">
             <div class="card">
-                <div class="card-title">📅 Calendar</div>
-                <div class="cal-header-row">
-                    <span class="cal-month" id="calMonth"></span>
-                    <div class="cal-nav">
-                        <button onclick="changeMonth(-1)">◀</button>
-                        <button onclick="changeMonth(1)">▶</button>
+                <div class="cal-nav-row">
+                    <div class="cal-title" id="calTitle2">May 2026</div>
+                    <div class="cal-nav-btns">
+                        <button onclick="changeMonth2(-1)">◀</button>
+                        <button class="today-btn" onclick="goToToday2()">Today</button>
+                        <button onclick="changeMonth2(1)">▶</button>
                     </div>
                 </div>
-                <div class="mini-cal-grid" id="calendarGrid"></div>
+                <div class="calendar-grid" id="calendarGrid2"></div>
             </div>
-
-            <div class="card">
-                <div class="card-title">📊 Progress</div>
-                <div class="stats-row">
-                    <div class="stat-pill total"><div class="stat-num" id="totalTasks">0</div><div class="stat-lbl">Total</div></div>
-                    <div class="stat-pill done"><div class="stat-num" id="doneTasks">0</div><div class="stat-lbl">Done</div></div>
-                    <div class="stat-pill overdue"><div class="stat-num" id="overdueTasks">0</div><div class="stat-lbl">Overdue</div></div>
-                </div>
-                <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-                <div class="streak-bar-wrap">
-                    <div class="streak-label">
-                        <span>Weekly Progress</span>
-                        <span id="streakDays">0/7 days</span>
-                    </div>
-                    <div class="streak-bar"><div class="streak-fill" id="streakFill"></div></div>
-                </div>
+            <div class="card upcoming-section" style="margin-top:18px;">
+                <div class="upcoming-title">📋 Upcoming Tasks</div>
+                <ul class="upcoming-list" id="upcomingList"></ul>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="card-title">🍅 Pomodoro</div>
-                <div class="pomo-time" id="pomoTime">25:00</div>
-                <div class="pomo-label" id="pomoLabel">Focus</div>
-                <div class="pomo-controls">
-                    <button class="pomo-btn" id="pomoStart" onclick="togglePomodoro()">▶</button>
-                    <button class="pomo-btn" onclick="resetPomodoro()">↺</button>
+        <!-- HABITS TAB -->
+        <div class="tab-panel" id="tabHabits">
+            <div class="habits-grid">
+                <div class="card">
+                    <div class="card-title">💧 Water (8 glasses)</div>
+                    <div class="water-bottle-wrap">
+                        <div class="water-bottle">
+                            <div class="water-fill" id="waterFill" style="height:0%"></div>
+                            <div class="water-label" id="waterLabel">0/8</div>
+                        </div>
+                        <div class="water-controls">
+                            <button class="water-btn" onclick="changeWater(-1)">−</button>
+                            <span class="water-count" id="waterCount">0 glasses</span>
+                            <button class="water-btn" onclick="changeWater(1)">+</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="pomo-sessions" id="pomoSessions">Sessions: 0</div>
+                <div class="card"><div class="card-title">🏃 Activity</div><div class="habit-item"><div class="habit-icon">🏃</div><div class="habit-name">30 min exercise</div><button class="habit-toggle" id="habit-exercise" onclick="toggleHabit('exercise')">○</button><div class="habit-streak">Streak: <strong id="streak-exercise">0</strong> days</div><div class="week-dots" id="dots-exercise"></div></div></div>
+                <div class="card"><div class="card-title">📖 Reading</div><div class="habit-item"><div class="habit-icon">📖</div><div class="habit-name">20 min reading</div><button class="habit-toggle" id="habit-reading" onclick="toggleHabit('reading')">○</button><div class="habit-streak">Streak: <strong id="streak-reading">0</strong> days</div><div class="week-dots" id="dots-reading"></div></div></div>
+                <div class="card"><div class="card-title">🤫 Silent Time</div><div class="habit-item"><div class="habit-icon">🤫</div><div class="habit-name">10 min silence</div><button class="habit-toggle" id="habit-silent" onclick="toggleHabit('silent')">○</button><div class="habit-streak">Streak: <strong id="streak-silent">0</strong> days</div><div class="week-dots" id="dots-silent"></div></div></div>
+                <div class="card"><div class="card-title">😴 Sleep</div><div class="habit-item"><div class="habit-icon">😴</div><div class="habit-name">7+ hours sleep</div><button class="habit-toggle" id="habit-sleep" onclick="toggleHabit('sleep')">○</button><div class="habit-streak">Streak: <strong id="streak-sleep">0</strong> days</div><div class="week-dots" id="dots-sleep"></div></div></div>
+                <div class="card"><div class="card-title">🧘 Stretching</div><div class="habit-item"><div class="habit-icon">🧘</div><div class="habit-name">5 min stretch</div><button class="habit-toggle" id="habit-stretch" onclick="toggleHabit('stretch')">○</button><div class="habit-streak">Streak: <strong id="streak-stretch">0</strong> days</div><div class="week-dots" id="dots-stretch"></div></div></div>
             </div>
-
-            <div class="card span-2">
-                <div class="card-title">🔗 Quick Links</div>
-                <div class="links-section">
-                    <div class="section-label">Productivity</div>
-                    <div class="link-chips">
-                        <a href="https://app.remarkable.com/" target="_blank" class="link-chip">🖊️ Remarkable</a>
-                        <a href="https://excel.cloud.microsoft.com/" target="_blank" class="link-chip">📊 Excel</a>
-                        <a href="https://word.cloud.microsoft.com/" target="_blank" class="link-chip">📝 Word</a>
-                        <a href="https://calendar.google.com/calendar/u/2/r" target="_blank" class="link-chip">📅 Calendar</a>
-                    </div>
-                </div>
-                <div class="links-section" style="margin-top:12px;">
-                    <div class="section-label">🎓 NAIT</div>
-                    <div class="link-chips">
-                        <a href="https://my.nait.ca/default.aspx" target="_blank" class="link-chip">🏫 NAIT Portal</a>
-                        <a href="https://lms.nait.ca/d2l/home/118001" target="_blank" class="link-chip">💻 COMP 2100</a>
-                        <a href="https://lms.nait.ca/d2l/home/118003" target="_blank" class="link-chip">🔒 SECR 2000</a>
-                        <a href="https://lms.nait.ca/d2l/home/92912" target="_blank" class="link-chip">📖 ENGL 1238</a>
-                    </div>
-                </div>
-                <div class="social-bar" style="margin-top:14px;">
-                    <a href="https://www.facebook.com/shaankenji.castro" target="_blank" class="social-icon facebook" title="Facebook">
-                        <svg viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg>
-                    </a>
-                    <a href="https://www.instagram.com/zhyo_ozhy/" target="_blank" class="social-icon instagram" title="Instagram">
-                        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                    </a>
-                    <a href="https://x.com/kassin0_0zhy" target="_blank" class="social-icon x" title="X">
-                        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                    </a>
-                    <a href="https://ca.pinterest.com/jijislifestyle/" target="_blank" class="social-icon pinterest" title="Pinterest">
-                        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/></svg>
-                    </a>
-                </div>
+            <div class="card" style="margin-top:18px;">
+                <div class="card-title">📊 Today's Habits</div>
+                <div class="habits-chart-wrap"><canvas id="habitsPieChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -169,6 +1260,459 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(function(n) { n.classList.remove('active'); });
+            document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            if (tab === 'calendar') renderCalendar2();
+            if (tab === 'habits') renderAllHabits();
+        }
+
+        // ==================== DATA ====================
+        var tasks = [];
+        var streakData = { days: {}, currentStreak: 0 };
+        try { var st = localStorage.getItem('flowTasks'); if (st) tasks = JSON.parse(st); } catch(e) { tasks = []; }
+        try { var ss = localStorage.getItem('flowStreak'); if (ss) streakData = JSON.parse(ss); } catch(e) { streakData = { days: {}, currentStreak: 0 }; }
+        function save() { try { localStorage.setItem('flowTasks', JSON.stringify(tasks)); } catch(e) {} }
+        function saveStreak() { try { localStorage.setItem('flowStreak', JSON.stringify(streakData)); } catch(e) {} }
+
+        // ==================== THEME ====================
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            try { localStorage.setItem('flowTheme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch(e) {}
+            if (document.getElementById('tabDashboard').classList.contains('active')) renderStats();
+            if (document.getElementById('tabHabits').classList.contains('active')) renderHabitsChart();
+        }
+        try { if (localStorage.getItem('flowTheme') === 'dark') document.body.classList.add('dark'); } catch(e) {}
+
+        // ==================== WEATHER ====================
+        function getWeather(lat, lon) {
+            try {
+                fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current_weather=true')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        var w = data.current_weather;
+                        var code = w.weathercode;
+                        var emoji = code <= 3 ? '☀️' : code <= 48 ? '🌫️' : code <= 67 ? '🌧️' : code <= 77 ? '❄️' : '⛈️';
+                        document.getElementById('weatherTemp').textContent = Math.round(w.temperature) + '°';
+                        document.getElementById('weatherEmoji').textContent = emoji;
+                    }).catch(function() {});
+            } catch(e) {}
+        }
+        try {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    getWeather(pos.coords.latitude, pos.coords.longitude);
+                    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&zoom=10')
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) { document.getElementById('weatherCity').textContent = d.address.city || d.address.town || 'Nearby'; })
+                        .catch(function() { document.getElementById('weatherCity').textContent = 'Current'; });
+                }, function() { document.getElementById('weatherCity').textContent = 'Location off'; });
+            }
+        } catch(e) {}
+
+        // ==================== TASKS ====================
+        var calendarMonth = new Date().getMonth();
+        var calendarYear = new Date().getFullYear();
+
+        function addTask() {
+            var input = document.getElementById('taskInput');
+            var text = input.value.trim();
+            if (!text) return;
+            tasks.push({ id: Date.now(), text: text, done: false, date: null });
+            input.value = '';
+            save();
+            renderAll();
+        }
+        function toggleTask(id) {
+            var task = tasks.find(function(t) { return t.id === id; });
+            if (!task) return;
+            var wasDone = task.done;
+            task.done = !task.done;
+            save();
+            if (!wasDone && task.done) { spawnParticles();
+                updateStreak(); }
+            renderAll();
+        }
+        function deleteTask(id) { tasks = tasks.filter(function(t) { return t.id !== id; });
+            save();
+            renderAll(); }
+        function updateTaskDate(id, val) { var task = tasks.find(function(t) { return t.id === id; }); if (task) { task.date = val || null;
+                save();
+                renderAll(); } }
+        function updateStreak() {
+            var today = new Date().toISOString().split('T')[0];
+            if (!streakData.days[today]) { streakData.days[today] = true; var y = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                streakData.currentStreak = streakData.days[y] ? streakData.currentStreak + 1 : 1;
+                saveStreak(); }
+        }
+        function getWeekProgress() {
+            var today = new Date(),
+                dow = today.getDay(),
+                start = new Date(today);
+            start.setDate(today.getDate() - dow);
+            var active = 0;
+            for (var i = 0; i < 7; i++) { var d = new Date(start);
+                d.setDate(start.getDate() + i); if (streakData.days[d.toISOString().split('T')[0]]) active++; }
+            return { daysActive: active, pct: Math.round((active / 7) * 100) };
+        }
+
+        function renderTaskList() {
+            var list = document.getElementById('taskList');
+            if (!tasks.length) { list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><small>Add one above</small></div>'; return; }
+            list.innerHTML = tasks.slice().sort(function(a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0); }).map(function(task) {
+                var today = new Date().toISOString().split('T')[0],
+                    overdue = task.date && task.date < today && !task.done;
+                return '<li class="task-item"><input type="checkbox" class="task-checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + task.id + ')"><div class="task-content" onclick="toggleTask(' + task.id + ')"><div class="task-text ' + (task.done ? 'done' : '') + '">' + escapeHtml(task.text) + '</div><input type="date" class="date-picker-mini ' + (overdue ? 'overdue' : '') + '" value="' + (task.date || '') + '" onchange="updateTaskDate(' + task.id + ',this.value)" onclick="event.stopPropagation()"></div><button class="btn-danger" onclick="event.stopPropagation();deleteTask(' + task.id + ')">✕</button></li>';
+            }).join('');
+        }
+
+        function renderStats() {
+            var today = new Date().toISOString().split('T')[0],
+                total = tasks.length,
+                done = tasks.filter(function(t) { return t.done; }).length,
+                overdue = tasks.filter(function(t) { return t.date && t.date < today && !t.done; }).length;
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('doneTasks').textContent = done;
+            document.getElementById('overdueTasks').textContent = overdue;
+            var wp = getWeekProgress();
+            document.getElementById('streakDays').textContent = wp.daysActive + '/7 days';
+            document.getElementById('streakFill').style.width = wp.pct + '%';
+            var ctx = document.getElementById('pieChart');
+            if (window.pieChart) window.pieChart.destroy();
+            window.pieChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Done', 'Pending'], datasets: [{ data: [done, Math.max(0, total - done)], backgroundColor: ['#34c759', '#0071e3'], borderWidth: 0 }] }, options: { cutout: '72%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 10 } } } } } });
+        }
+
+        function renderCalendar() {
+            document.getElementById('calMonth').textContent = new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+            var html = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(function(d) { return '<div class="cal-day-header">' + d + '</div>'; }).join('');
+            var firstDay = new Date(calendarYear, calendarMonth, 1).getDay(),
+                daysIn = new Date(calendarYear, calendarMonth + 1, 0).getDate(),
+                today = new Date().toISOString().split('T')[0];
+            var td = {};
+            tasks.forEach(function(t) { if (t.date) td[t.date] = true; });
+            for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day other-month"></div>';
+            for (var d = 1; d <= daysIn; d++) { var ds = calendarYear + '-' + String(calendarMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                html += '<div class="cal-day' + (ds === today ? ' today' : '') + (td[ds] ? ' has-task' : '') + '">' + d + '</div>'; }
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        function changeMonth(d) { calendarMonth += d; if (calendarMonth < 0) { calendarMonth = 11;
+                calendarYear--; } if (calendarMonth > 11) { calendarMonth = 0;
+                calendarYear++; }
+            renderCalendar(); }
+
+        function exportTasks() {
+            var blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'flow-tasks-' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+        }
+
+        function importTasks(input) {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) { try { var imp = JSON.parse(e.target.result); if (Array.isArray(imp) && confirm('Import ' + imp.length + ' tasks?')) { tasks = imp;
+                        save();
+                        renderAll(); } } catch(err) { alert('Invalid file'); } };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // ==================== POMODORO ====================
+        var pomo = { total: 25 * 60, running: false, brk: false, sessions: 0, end: null, iv: null, rem: 25 * 60 };
+        try { pomo.sessions = parseInt(localStorage.getItem('pomoSessions') || '0'); } catch(e) {}
+
+        function getRem() { return pomo.running && pomo.end ? Math.max(0, Math.round((pomo.end - Date.now()) / 1000)) : pomo.rem; }
+
+        function renderPomo() {
+            var r = pomo.running ? getRem() : pomo.rem;
+            document.getElementById('pomoTime').textContent = String(Math.floor(r / 60)).padStart(2, '0') + ':' + String(r % 60).padStart(2, '0');
+            document.getElementById('pomoLabel').textContent = pomo.brk ? 'Break' : 'Focus';
+            document.getElementById('pomoStart').textContent = pomo.running ? '⏸' : '▶';
+            document.getElementById('pomoStart').classList.toggle('active', pomo.running);
+            document.getElementById('pomoSessions').textContent = 'Sessions: ' + pomo.sessions;
+        }
+
+        function togglePomodoro() {
+            if (pomo.running) { clearInterval(pomo.iv);
+                pomo.rem = getRem();
+                pomo.running = false;
+                pomo.end = null;
+                pomo.iv = null; } else { pomo.running = true;
+                pomo.end = Date.now() + pomo.rem * 1000;
+                pomo.iv = setInterval(function() { var r = getRem(); if (r <= 0) { clearInterval(pomo.iv);
+                        pomo.running = false;
+                        pomo.end = null;
+                        pomo.iv = null; if (!pomo.brk) { pomo.sessions++;
+                            try { localStorage.setItem('pomoSessions', pomo.sessions); } catch(e) {}
+                            showWheel(); }
+                        pomo.brk = !pomo.brk;
+                        pomo.total = pomo.brk ? 5 * 60 : 25 * 60;
+                        pomo.rem = pomo.total;
+                        renderPomo(); return; }
+                    renderPomo(); }, 250); }
+            renderPomo();
+        }
+
+        function resetPomodoro() { clearInterval(pomo.iv);
+            pomo.running = false;
+            pomo.brk = false;
+            pomo.end = null;
+            pomo.iv = null;
+            pomo.total = 25 * 60;
+            pomo.rem = 25 * 60;
+            renderPomo(); }
+        document.addEventListener('visibilitychange', function() { if (!document.hidden && pomo.running) { var r = getRem(); if (r <= 0) { clearInterval(pomo.iv);
+                    pomo.running = false;
+                    pomo.end = null;
+                    pomo.iv = null; if (!pomo.brk) { pomo.sessions++;
+                        try { localStorage.setItem('pomoSessions', pomo.sessions); } catch(e) {}
+                        showWheel(); }
+                    pomo.brk = !pomo.brk;
+                    pomo.total = pomo.brk ? 5 * 60 : 25 * 60;
+                    pomo.rem = pomo.total; }
+                renderPomo(); } });
+
+        var wheelOptions = [{ label: 'Walk', color: '#34c759' }, { label: 'Water', color: '#0071e3' }, { label: 'Rest Eyes', color: '#af52de' }, { label: 'Phone', color: '#ff9500' }, { label: 'Look Outside', color: '#5ac8fa' }, { label: 'Breathe', color: '#ff3b30' }, { label: 'Music', color: '#ff2d55' }, { label: 'Doodle', color: '#ffcc00' }];
+        var wheelCtx = document.getElementById('wheelCanvas').getContext('2d');
+        var wheelAngle = 0,
+            spinning = false;
+
+        function drawWheel(rot) {
+            var cx = 160,
+                cy = 160,
+                r = 150,
+                s = wheelOptions.length,
+                arc = (2 * Math.PI) / s;
+            wheelCtx.clearRect(0, 0, 320, 320);
+            wheelCtx.save();
+            wheelCtx.translate(cx, cy);
+            wheelCtx.rotate(rot);
+            wheelCtx.translate(-cx, -cy);
+            for (var i = 0; i < s; i++) { var sa = i * arc - Math.PI / 2;
+                wheelCtx.beginPath();
+                wheelCtx.moveTo(cx, cy);
+                wheelCtx.arc(cx, cy, r, sa, sa + arc);
+                wheelCtx.closePath();
+                wheelCtx.fillStyle = wheelOptions[i].color;
+                wheelCtx.fill();
+                wheelCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+                wheelCtx.lineWidth = 2;
+                wheelCtx.stroke();
+                wheelCtx.save();
+                wheelCtx.translate(cx, cy);
+                wheelCtx.rotate(sa + arc / 2);
+                wheelCtx.textAlign = 'center';
+                wheelCtx.fillStyle = '#fff';
+                wheelCtx.font = 'bold 13px -apple-system, sans-serif';
+                wheelCtx.fillText(wheelOptions[i].label, 95, 5);
+                wheelCtx.restore(); }
+            wheelCtx.beginPath();
+            wheelCtx.arc(cx, cy, 25, 0, 2 * Math.PI);
+            wheelCtx.fillStyle = '#fff';
+            wheelCtx.fill();
+            wheelCtx.fillStyle = '#1d1d1f';
+            wheelCtx.font = 'bold 14px -apple-system';
+            wheelCtx.textAlign = 'center';
+            wheelCtx.fillText('GO', cx, cy + 5);
+            wheelCtx.restore();
+        }
+
+        function showWheel() {
+            document.getElementById('wheelOverlay').classList.add('show');
+            document.getElementById('wheelResult').classList.remove('show');
+            document.getElementById('wheelResult').textContent = '';
+            spinning = false;
+            wheelAngle = Math.random() * 360;
+            document.getElementById('wheelCanvas').style.transform = 'rotate(' + wheelAngle + 'deg)';
+            drawWheel(wheelAngle * Math.PI / 180);
+            setTimeout(function() { if (spinning) return;
+                spinning = true;
+                document.getElementById('wheelResult').classList.remove('show');
+                var extra = 5 + Math.random() * 5,
+                    total = extra * 360 + Math.random() * 360;
+                wheelAngle += total;
+                document.getElementById('wheelCanvas').style.transform = 'rotate(' + wheelAngle + 'deg)';
+                setTimeout(function() { spinning = false; var slices = wheelOptions.length,
+                        arc = 360 / slices,
+                        norm = ((wheelAngle % 360) + 360) % 360,
+                        idx = Math.floor(norm / arc),
+                        result = wheelOptions[(slices - idx) % slices];
+                    document.getElementById('wheelResult').textContent = result.label + ' - Enjoy!';
+                    document.getElementById('wheelResult').classList.add('show'); }, 4200); }, 400);
+        }
+
+        function closeWheel() { document.getElementById('wheelOverlay').classList.remove('show'); if (!pomo.running && pomo.brk) togglePomodoro(); }
+        drawWheel(0);
+
+        // ==================== MUSIC ====================
+        var defaultMusic = 'https://www.youtube.com/embed/jfKfPfyJRdk';
+
+        function toggleMusic() { document.getElementById('musicPanel').classList.toggle('open'); }
+
+        function updateMusic() {
+            var url = document.getElementById('musicUrl').value.trim(),
+                embed = defaultMusic;
+            if (url.indexOf('youtube.com/embed/') !== -1) embed = url.split('?')[0];
+            else { var m = url.match(/(?:v=|\/)([\w-]{11})/); if (m) embed = 'https://www.youtube.com/embed/' + m[1]; }
+            try { localStorage.setItem('flowMusic', embed); } catch(e) {}
+            document.getElementById('musicContainer').innerHTML = '<iframe src="' + embed + '" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;width:100%;height:180px;border:none;"></iframe>';
+        }
+
+        function renderMusic(url) { document.getElementById('musicContainer').innerHTML = '<iframe src="' + url + '" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:14px;width:100%;height:180px;border:none;"></iframe>'; }
+
+        // ==================== PARTICLES ====================
+        var pc = document.getElementById('particlesCanvas'),
+            pctx = pc.getContext('2d'),
+            particles = [];
+
+        function rC() { pc.width = window.innerWidth;
+            pc.height = window.innerHeight; }
+        rC();
+        window.addEventListener('resize', rC);
+
+        function spawnParticles() { for (var i = 0, cx = window.innerWidth / 2, cy = window.innerHeight / 2; i < 30; i++) particles.push({ x: cx, y: cy, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6 - 3, life: 1, decay: 0.015 + Math.random() * 0.025, size: 3 + Math.random() * 6, color: ['#34c759', '#0071e3', '#ff9500', '#ff3b30', '#af52de'][Math.floor(Math.random() * 5)] }); if (particles.length > 200) particles.splice(0, 30); }
+
+        function aP() { pctx.clearRect(0, 0, pc.width, pc.height);
+            particles = particles.filter(function(p) { return p.life > 0; });
+            particles.forEach(function(p) { p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.05;
+                p.life -= p.decay;
+                pctx.globalAlpha = p.life;
+                pctx.fillStyle = p.color;
+                pctx.beginPath();
+                pctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                pctx.fill(); });
+            pctx.globalAlpha = 1;
+            requestAnimationFrame(aP); }
+        aP();
+
+        // ==================== CALENDAR PAGE ====================
+        var calMonth2 = new Date().getMonth(),
+            calYear2 = new Date().getFullYear();
+
+        function renderCalendar2() {
+            document.getElementById('calTitle2').textContent = new Date(calYear2, calMonth2).toLocaleString('default', { month: 'long', year: 'numeric' });
+            var html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d) { return '<div class="cal-day-header">' + d + '</div>'; }).join('');
+            var firstDay = new Date(calYear2, calMonth2, 1).getDay(),
+                daysIn = new Date(calYear2, calMonth2 + 1, 0).getDate(),
+                today = new Date().toISOString().split('T')[0];
+            for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day-cell other-month"><div class="cal-day-num"></div></div>';
+            for (var d = 1; d <= daysIn; d++) {
+                var ds = calYear2 + '-' + String(calMonth2 + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'),
+                    dayTasks = tasks.filter(function(t) { return t.date === ds; }),
+                    taskHtml = '';
+                dayTasks.slice(0, 4).forEach(function(t) { var cls = t.done ? 'done' : (ds < today ? 'overdue' : 'pending');
+                    taskHtml += '<div class="cal-task-dot ' + cls + '" onclick="event.stopPropagation();toggleTask(' + t.id + ')">' + (t.done ? '✓ ' : '○ ') + escapeHtml(t.text).substring(0, 20) + '</div>'; });
+                if (dayTasks.length > 4) taskHtml += '<div class="cal-task-dot" style="opacity:0.5">+' + (dayTasks.length - 4) + ' more</div>';
+                html += '<div class="cal-day-cell' + (ds === today ? ' today' : '') + '"><div class="cal-day-num">' + d + '</div><div class="cal-day-tasks">' + taskHtml + '</div></div>';
+            }
+            var tc = firstDay + daysIn,
+                rem = tc % 7 === 0 ? 0 : 7 - (tc % 7);
+            for (var r = 1; r <= rem; r++) html += '<div class="cal-day-cell other-month"><div class="cal-day-num"></div></div>';
+            document.getElementById('calendarGrid2').innerHTML = html;
+            renderUpcoming();
+        }
+
+        function renderUpcoming() {
+            var today = new Date().toISOString().split('T')[0],
+                upcoming = tasks.filter(function(t) { return t.date && t.date >= today; }).sort(function(a, b) { return a.date.localeCompare(b.date); }),
+                list = document.getElementById('upcomingList');
+            if (!upcoming.length) { list.innerHTML = '<div class="empty-state">No upcoming tasks 🎉</div>'; return; }
+            list.innerHTML = upcoming.slice(0, 15).map(function(t) { var d = new Date(t.date + 'T00:00:00'),
+                    dl = d.toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' }),
+                    cls = t.done ? 'done' : (t.date < today ? 'overdue' : 'pending'),
+                    txt = t.done ? 'Done' : (t.date < today ? 'Overdue' : 'Upcoming'); return '<li class="upcoming-item"><span class="upcoming-date">' + dl + '</span><span class="upcoming-text ' + (t.done ? 'done' : '') + '">' + escapeHtml(t.text) + '</span><span class="upcoming-badge ' + cls + '">' + txt + '</span></li>'; }).join('');
+        }
+
+        function changeMonth2(d) { calMonth2 += d; if (calMonth2 < 0) { calMonth2 = 11;
+                calYear2--; } if (calMonth2 > 11) { calMonth2 = 0;
+                calYear2++; }
+            renderCalendar2(); }
+
+        function goToToday2() { calMonth2 = new Date().getMonth();
+            calYear2 = new Date().getFullYear();
+            renderCalendar2(); }
+
+        // ==================== HABITS ====================
+        var habits = {};
+        try { var hb = localStorage.getItem('flowHabits'); if (hb) habits = JSON.parse(hb); } catch(e) { habits = {}; }
+        var habitKeys = ['exercise', 'reading', 'silent', 'sleep', 'stretch'];
+        habitKeys.forEach(function(k) { if (!habits[k]) habits[k] = {}; });
+        var waterGlasses = 0;
+        try { waterGlasses = parseInt(localStorage.getItem('flowWater_' + new Date().toISOString().split('T')[0]) || '0'); } catch(e) {}
+
+        function saveHabits() { try { localStorage.setItem('flowHabits', JSON.stringify(habits)); } catch(e) {} }
+
+        function changeWater(d) { waterGlasses = Math.max(0, Math.min(8, waterGlasses + d));
+            try { localStorage.setItem('flowWater_' + new Date().toISOString().split('T')[0], waterGlasses); } catch(e) {}
+            renderWater();
+            renderHabitsChart(); }
+
+        function renderWater() { var pct = (waterGlasses / 8) * 100;
+            document.getElementById('waterFill').style.height = pct + '%';
+            document.getElementById('waterLabel').textContent = waterGlasses + '/8';
+            document.getElementById('waterCount').textContent = waterGlasses + ' glasses'; }
+
+        function toggleHabit(key) { var today = new Date().toISOString().split('T')[0]; if (habits[key][today]) delete habits[key][today]; else habits[key][today] = true;
+            saveHabits();
+            renderAllHabits(); }
+
+        function getStreak(key) { var s = 0,
+                d = new Date(),
+                today = new Date().toISOString().split('T')[0]; if (!habits[key][today]) d.setDate(d.getDate() - 1); while (true) { var ds = d.toISOString().split('T')[0]; if (habits[key][ds]) { s++;
+                    d.setDate(d.getDate() - 1); } else break; } return s; }
+
+        function getWeekDots(key) { var dots = [],
+                today = new Date(),
+                dow = today.getDay(),
+                start = new Date(today);
+            start.setDate(today.getDate() - dow); for (var i = 0; i < 7; i++) { var d = new Date(start);
+                d.setDate(start.getDate() + i); var ds = d.toISOString().split('T')[0],
+                    isToday = ds === new Date().toISOString().split('T')[0]; dots.push({ done: habits[key][ds], today: isToday }); } return dots; }
+
+        function renderHabitCard(key) { var today = new Date().toISOString().split('T')[0],
+                done = habits[key][today],
+                btn = document.getElementById('habit-' + key); if (btn) { btn.textContent = done ? '✓' : '○';
+                btn.classList.toggle('done', done); }
+            document.getElementById('streak-' + key).textContent = getStreak(key);
+            document.getElementById('dots-' + key).innerHTML = getWeekDots(key).map(function(d) { return '<div class="week-dot' + (d.done ? ' filled' : '') + (d.today ? ' today' : '') + '"></div>'; }).join(''); }
+
+        function renderHabitsChart() { var today = new Date().toISOString().split('T')[0],
+                done = waterGlasses >= 8 ? 1 : 0;
+            habitKeys.forEach(function(k) { if (habits[k][today]) done++; }); var total = habitKeys.length + 1,
+                ctx = document.getElementById('habitsPieChart'); if (window.habitsChart) window.habitsChart.destroy();
+            window.habitsChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Done', 'Remaining'], datasets: [{ data: [done, Math.max(0, total - done)], backgroundColor: ['#af52de', 'rgba(128,128,128,0.15)'], borderWidth: 0 }] }, options: { cutout: '72%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 11 }, color: document.body.classList.contains('dark') ? '#98989d' : '#86868b' } } } } }); }
+
+        function renderAllHabits() { renderWater();
+            habitKeys.forEach(function(k) { renderHabitCard(k); });
+            renderHabitsChart(); }
+
+        // ==================== UTILS ====================
+        function escapeHtml(text) { var d = document.createElement('div');
+            d.textContent = text || ''; return d.innerHTML; }
+
+        function renderAll() { renderTaskList();
+            renderStats();
+            renderCalendar(); }
+
+        // ==================== INIT ====================
+        var todayStr = new Date().toISOString().split('T')[0];
+        if (tasks.some(function(t) { return t.done; })) { if (!streakData.days[todayStr]) { var y = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                streakData.days[todayStr] = true;
+                streakData.currentStreak = streakData.days[y] ? (streakData.currentStreak || 0) + 1 : 1;
+                saveStreak(); } }
+        renderAll();
+        renderPomo();
+        try { var sm = localStorage.getItem('flowMusic') || defaultMusic;
+            renderMusic(sm); if (sm !== defaultMusic) document.getElementById('musicUrl').value = sm; } catch(e) {}
+    </script>
 </body>
 </html>
