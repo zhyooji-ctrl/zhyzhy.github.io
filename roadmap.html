@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Roadmap • Network Admin Plan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --border: #e2e8f0;
+            --phase-bg: #f8fafc;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+        }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+        .hero .badge {
+            display: inline-block;
+            background: var(--accent);
+            padding: 0.3rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: 0.3px;
+        }
+        .hero p {
+            font-size: 1.05rem;
+            color: #cbd5e1;
+            max-width: 700px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.3s, transform 0.2s;
+            border: 1px solid var(--border);
+        }
+        .card:hover {
+            box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 5px solid var(--accent);
+            padding-left: 1rem;
+            color: #0f172a;
+        }
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.25rem 0 0.75rem 0;
+            color: #0f172a;
+        }
+
+        .phase-item {
+            background: var(--phase-bg);
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            border-left: 4px solid var(--accent);
+            margin-bottom: 1rem;
+        }
+        .phase-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 0.4rem;
+        }
+        .phase-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .week-list {
+            list-style: none;
+            margin-top: 0.75rem;
+        }
+        .week-list li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .week-list li strong {
+            min-width: 130px;
+            font-weight: 600;
+            color: #0f172a;
+            flex-shrink: 0;
+        }
+
+        .chip {
+            background: #e2e8f0;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+        }
+        .chip.green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .chip.blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 700px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            .hero {
+                padding: 1.75rem;
+            }
+            .week-list li strong {
+                min-width: 100px;
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f8fafc;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        th,
+        td {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        th {
+            background: #eef2ff;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .cost-box {
+            background: #fef9c3;
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: 1px solid #fde68a;
+        }
+
+        .next-step {
+            background: #0f172a;
+            color: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+        }
+        .next-step h3 {
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+        .next-step p {
+            margin-bottom: 0.75rem;
+        }
+
+        pre {
+            background: #f1f5f9;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            overflow-x: auto;
+            font-size: 0.78rem;
+            font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+            line-height: 1.6;
+            border: 1px solid var(--border);
+        }
+
+        ul {
+            padding-left: 1.2rem;
+        }
+        ul li {
+            margin-bottom: 0.35rem;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <span class="badge">🔐 PRIVATE ROADMAP — SPRING/SUMMER 2026</span>
+            <h1>From Teller to NOC Technician<br>→ Network Administrator</h1>
+            <p>✅ NET student · TD teller (1.5 yrs) · VMware/Cisco/FortiGate · Zero certs → A+ &amp; Network+ by June</p>
+        </div>
+
+        <div class="card">
+            <h2>📅 Big Picture Timeline</h2>
+            <div class="phase-item">
+                <div class="phase-title">🌱 Phase 1: Network+ (March – early April)</div>
+                <div class="phase-desc">Already know VLANs, OSPF, FortiGate → fast win. Exam by April 7–11.</div>
+            </div>
+            <div class="phase-item">
+                <div class="phase-title">🖥️ Phase 2: A+ Core 1 (April – mid-May)</div>
+                <div class="phase-desc">Hardware, motherboards, storage, printers, peripherals.</div>
+            </div>
+            <div class="phase-item">
+                <div class="phase-title">⚙️ Phase 3: A+ Core 2 (mid-May – June)</div>
+                <div class="phase-desc">Windows, Linux, macOS, security, software troubleshooting.</div>
+            </div>
+            <div class="phase-item">
+                <div class="phase-title">🚀 Phase 4: Job Search (June – August)</div>
+                <div class="phase-desc">NOC Technician / Tier 2 IT Support. 10–15 apps/week + networking.</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📌 Week-by-Week Map (March → August)</h2>
+
+            <h3>📡 Network+ (March 1 – April 4)</h3>
+            <ul class="week-list">
+                <li><strong>Week 1 (Mar 1-7):</strong> OSI, TCP/IP, ports, protocols</li>
+                <li><strong>Week 2 (Mar 8-14):</strong> Subnetting, CIDR, OSPF, static routes</li>
+                <li><strong>Week 3 (Mar 15-21):</strong> VLANs, trunking, switching, wireless</li>
+                <li><strong>Week 4 (Mar 22-28):</strong> Firewalls, ACLs, monitoring, troubleshooting</li>
+                <li><strong>Week 5 (Mar 29-Apr 4):</strong> Review + Jason Dion practice exams</li>
+                <li><strong>🎯 Early April:</strong> <span class="chip green">PASS NETWORK+</span> (exam ~$350)</li>
+            </ul>
+
+            <h3>🛠️ A+ Core 1 — Hardware (April 6 → May 10)</h3>
+            <ul class="week-list">
+                <li><strong>Week 6 (Apr 6-12):</strong> Motherboards, CPUs, BIOS/UEFI</li>
+                <li><strong>Week 7 (Apr 13-19):</strong> RAM types, storage, RAID, NVMe</li>
+                <li><strong>Week 8 (Apr 20-26):</strong> Peripherals, displays, printers</li>
+                <li><strong>Week 9 (Apr 27-May 3):</strong> Networking hardware + troubleshooting tools</li>
+                <li><strong>Week 10 (May 4-10):</strong> Practice tests, weak areas review</li>
+                <li><strong>🎯 Mid-May:</strong> <span class="chip green">PASS A+ CORE 1</span> (~$250)</li>
+            </ul>
+
+            <h3>🐧 A+ Core 2 — OS/Software (May 11 → June 21)</h3>
+            <ul class="week-list">
+                <li><strong>Week 11 (May 11-17):</strong> Windows fundamentals, CLI, registry</li>
+                <li><strong>Week 12 (May 18-24):</strong> Linux + macOS basics, permissions</li>
+                <li><strong>Week 13 (May 25-31):</strong> Security: malware removal, authentication</li>
+                <li><strong>Week 14 (Jun 1-7):</strong> Software troubleshooting (BSOD, crashes)</li>
+                <li><strong>Week 15 (Jun 8-14):</strong> Operational procedures, documentation</li>
+                <li><strong>Week 16 (Jun 15-21):</strong> Final review + practice exams</li>
+                <li><strong>🎯 Late June:</strong> <span class="chip green">PASS A+ CORE 2</span> (~$250)</li>
+            </ul>
+
+            <h3>💼 Job Search &amp; Applications (June – August)</h3>
+            <ul class="week-list">
+                <li><strong>June 1-30:</strong> 10–15 applications/week → NOC, Tier 2 IT Support, MSPs</li>
+                <li><strong>July:</strong> 15–20/week, reach out to recruiters (Robert Half, TEKsystems)</li>
+                <li><strong>August:</strong> Interviews + offers. Target: NOC Technician or Desktop Support Tier 2</li>
+            </ul>
+        </div>
+
+        <div class="grid-2col">
+            <div class="card">
+                <h2>🎯 Target Job Titles</h2>
+                <ul>
+                    <li>✅ NOC Technician (best for network admin path)</li>
+                    <li>✅ IT Support Specialist (Tier 2)</li>
+                    <li>✅ Desktop Support Technician</li>
+                    <li>✅ Junior Network Support</li>
+                </ul>
+                <h3>Where to Apply (Canada)</h3>
+                <ul>
+                    <li>📡 Telcos: Rogers, Bell, Telus, Shaw</li>
+                    <li>🏦 Banks: TD, RBC, Scotiabank (internal mobility)</li>
+                    <li>⚙️ MSPs: search "[your city] MSP"</li>
+                    <li>📋 Staffing: Robert Half, TEKsystems, Randstad</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h2>💰 Cost Summary (USD)</h2>
+                <table>
+                    <tr><th>Item</th><th>Cost</th></tr>
+                    <tr><td>Network+ exam</td><td>$350</td></tr>
+                    <tr><td>A+ Core 1</td><td>$250</td></tr>
+                    <tr><td>A+ Core 2</td><td>$250</td></tr>
+                    <tr><td>Jason Dion practice exams</td><td>$30-45</td></tr>
+                    <tr><td><strong>Total ~$880-900 USD</strong></td><td>≈ $1,200-1,250 CAD</td></tr>
+                </table>
+                <div class="cost-box" style="margin-top:1rem;">
+                    💡 Professor Messer (free) + Anki flashcards. Employer may reimburse later.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📄 Resume Template (After Both Certs)</h2>
+            <pre>[Your Name]
+NET Student | A+ &amp; Network+ Certified
+
+CERTIFICATIONS
+- CompTIA A+ (Core 1 + Core 2) – June 2026
+- CompTIA Network+ – April 2026
+
+TECHNICAL SKILLS
+- Networking: VLANs, OSPF, TCP/IP, DHCP, DNS, FortiGate firewalls
+- Hardware: PC assembly, printers, mobile devices, troubleshooting
+- OS: Windows 10/11, Windows Server, Linux basics
+- Virtualization: VMware Workstation (Windows Server VMs)
+- Cisco: basic switch config
+
+EXPERIENCE
+TD Bank – Teller (1.5 years)
+- 50+ daily customer issues, de-escalation, troubleshooting
+- Recognized for [award or feedback]
+
+EDUCATION
+Network Engineering Technology (in progress)
+- Labs: VLANs, OSPF, FortiGate rules, VMware servers</pre>
+        </div>
+
+        <div class="card">
+            <h2>🗣️ Interview Ready: Why Both Certs?</h2>
+            <p><strong>Sample answer:</strong> <em>"I started with networking (NET program) but wanted a complete foundation. A+ gave me hardware/OS troubleshooting, Network+ validated my networking knowledge. Together I'm ready for NOC or technical support roles with a networking edge."</em></p>
+            <h3>📈 Weekly Job Search Routine (Starting June 1)</h3>
+            <ul>
+                <li>📝 10–15 applications/week</li>
+                <li>💬 5 LinkedIn messages to IT managers or NOC leads</li>
+                <li>📞 Follow-up every 5–7 days on past applications</li>
+                <li>🎭 1 mock interview/week (focus on troubleshooting scenarios)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🔄 Contingency Plan</h2>
+            <div class="grid-2col">
+                <div><strong>❌ Fail Network+ in April</strong><br>Retake in 2 weeks. Shift A+ by 2 weeks.</div>
+                <div><strong>🐢 A+ Core 1 too hard</strong><br>Change resources, use Messer + Dion. Retake after extra week.</div>
+                <div><strong>📭 Slow job search (June)</strong><br>Increase to 20 apps/week. Add staffing agencies.</div>
+                <div><strong>💰 Budget tight</strong><br>Get Network+ only → apply immediately → let employer pay for A+.</div>
+            </div>
+        </div>
+
+        <div class="next-step">
+            <h3>✅ YOUR SINGLE NEXT STEP (TODAY)</h3>
+            <p>1. Buy CompTIA Network+ exam voucher (≈ $350)<br>
+            2. Bookmark Professor Messer Network+ playlist<br>
+            3. Set exam date: April 7–11, 2026<br>
+            4. Print this page or save it as hidden roadmap</p>
+            <p>🔗 This page is unlisted. Keep the link private — accessible only to you.</p>
+        </div>
+
+        <footer>
+            Private roadmap · From TD teller → NOC Technician → Network Administrator<br>
+            Last updated: March 2026 | Both A+ &amp; Network+ by end of June
+        </footer>
+    </div>
+</body>
+</html>
