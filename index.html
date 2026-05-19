@@ -23,6 +23,7 @@
             --accent-purple: #af52de;
             --green: #34c759;
             --red: #ff3b30;
+            --orange: #ff9500;
         }
 
         body {
@@ -136,7 +137,6 @@
             color: var(--text);
         }
 
-        /* Tab panels */
         .tab-panel {
             display: none;
             animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -264,6 +264,11 @@
             font-size: 0.7rem;
             border-radius: 12px;
         }
+        .btn-xs {
+            padding: 3px 8px;
+            font-size: 0.65rem;
+            border-radius: 10px;
+        }
         .task-list {
             list-style: none;
             overflow-y: auto;
@@ -281,7 +286,7 @@
         .task-item {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             padding: 10px 14px;
             border-radius: 16px;
             margin-bottom: 4px;
@@ -290,6 +295,21 @@
         }
         .task-item:hover {
             background: rgba(128, 128, 128, 0.06);
+        }
+        .task-priority {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .task-priority.high {
+            background: var(--red);
+        }
+        .task-priority.medium {
+            background: var(--orange);
+        }
+        .task-priority.low {
+            background: var(--text-secondary);
         }
         .task-checkbox {
             width: 22px;
@@ -331,6 +351,12 @@
             text-decoration: line-through;
             opacity: 0.5;
         }
+        .task-meta {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 2px;
+        }
         .date-picker-mini {
             background: transparent;
             border: none;
@@ -343,6 +369,26 @@
         .date-picker-mini.overdue {
             color: var(--red);
             font-weight: 600;
+        }
+        .priority-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .priority-badge.high {
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--red);
+        }
+        .priority-badge.medium {
+            background: rgba(255, 149, 0, 0.12);
+            color: var(--orange);
+        }
+        .priority-badge.low {
+            background: rgba(128, 128, 128, 0.1);
+            color: var(--text-secondary);
         }
 
         .stats-row {
@@ -405,6 +451,31 @@
             border-radius: 8px;
             background: linear-gradient(90deg, #ff9500, #ff5e3a);
             transition: width 0.6s;
+            width: 0%;
+        }
+
+        /* Habits mini bar */
+        .habits-mini-bar {
+            margin-top: 10px;
+        }
+        .habits-mini-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .habits-mini-track {
+            height: 6px;
+            border-radius: 6px;
+            background: rgba(128, 128, 128, 0.1);
+            overflow: hidden;
+        }
+        .habits-mini-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #af52de, #5ac8fa);
+            transition: width 0.5s;
             width: 0%;
         }
 
@@ -761,7 +832,65 @@
             font-size: 0.85rem;
         }
 
-        /* ==================== CALENDAR PAGE STYLES ==================== */
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        .modal-box h3 {
+            font-size: 1rem;
+            margin-bottom: 14px;
+        }
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(128, 128, 128, 0.06);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            font-size: 0.85rem;
+            color: var(--text);
+            outline: none;
+            font-family: inherit;
+            margin-bottom: 10px;
+        }
+        .modal-box input:focus,
+        .modal-box select:focus {
+            border-color: var(--accent);
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 6px;
+        }
+        .modal-actions .btn-cancel {
+            background: rgba(128, 128, 128, 0.1);
+            color: var(--text);
+        }
+
+        /* Calendar full styles */
         .cal-nav-row {
             display: flex;
             justify-content: space-between;
@@ -814,7 +943,7 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            min-height: 90px;
+            min-height: 85px;
             display: flex;
             flex-direction: column;
             font-size: 0.8rem;
@@ -830,12 +959,39 @@
             opacity: 0.25;
             pointer-events: none;
         }
+        .cal-day-num-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
         .cal-day-num {
             font-weight: 600;
-            margin-bottom: 4px;
         }
         .cal-day-cell.today .cal-day-num {
             color: var(--accent);
+        }
+        .cal-add-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .cal-day-cell:hover .cal-add-btn {
+            display: flex;
+        }
+        .cal-add-btn:hover {
+            background: var(--accent-purple);
+            color: #fff;
         }
         .cal-day-tasks {
             display: flex;
@@ -845,7 +1001,7 @@
             flex: 1;
         }
         .cal-task-dot {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             padding: 2px 5px;
             border-radius: 6px;
             white-space: nowrap;
@@ -870,17 +1026,17 @@
         }
         @media (max-width: 800px) {
             .cal-day-cell {
-                min-height: 60px;
-                padding: 4px;
+                min-height: 55px;
+                padding: 3px;
                 font-size: 0.7rem;
             }
             .cal-task-dot {
-                font-size: 0.6rem;
+                font-size: 0.55rem;
                 padding: 1px 3px;
             }
         }
         .upcoming-section {
-            margin-top: 20px;
+            margin-top: 18px;
         }
         .upcoming-title {
             font-size: 0.8rem;
@@ -937,7 +1093,7 @@
             color: var(--red);
         }
 
-        /* ==================== HABITS PAGE STYLES ==================== */
+        /* Habits styles */
         .habits-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -1099,6 +1255,24 @@
         <button class="wheel-close" onclick="closeWheel()">Start Break!</button>
     </div>
 
+    <!-- Add Task Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <h3>➕ Add Task</h3>
+            <input type="text" id="modalTaskInput" placeholder="Task name...">
+            <input type="date" id="modalTaskDate">
+            <select id="modalTaskPriority">
+                <option value="low">Low Priority</option>
+                <option value="medium" selected>Medium Priority</option>
+                <option value="high">High Priority</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="addTaskFromModal()">Add Task</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>Flow</h1>
@@ -1154,6 +1328,10 @@
                         <div class="streak-label"><span>Weekly Progress</span><span id="streakDays">0/7 days</span></div>
                         <div class="streak-bar"><div class="streak-fill" id="streakFill"></div></div>
                     </div>
+                    <div class="habits-mini-bar">
+                        <div class="habits-mini-label"><span>Today's Habits</span><span id="habitsMiniLabel">0/6</span></div>
+                        <div class="habits-mini-track"><div class="habits-mini-fill" id="habitsMiniFill"></div></div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-title">🍅 Pomodoro</div>
@@ -1205,6 +1383,10 @@
                         <button class="today-btn" onclick="goToToday2()">Today</button>
                         <button onclick="changeMonth2(1)">▶</button>
                     </div>
+                </div>
+                <div class="habits-mini-bar" style="margin-bottom:14px;">
+                    <div class="habits-mini-label"><span>🏆 Today's Habits</span><span id="habitsMiniLabel2">0/6</span></div>
+                    <div class="habits-mini-track"><div class="habits-mini-fill" id="habitsMiniFill2"></div></div>
                 </div>
                 <div class="calendar-grid" id="calendarGrid2"></div>
             </div>
@@ -1267,8 +1449,11 @@
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
             document.querySelectorAll('.nav-link').forEach(function(n) { n.classList.remove('active'); });
             document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-            if (tab === 'calendar') renderCalendar2();
+            if (tab === 'calendar') { renderCalendar2();
+                updateHabitsMiniBar(); }
             if (tab === 'habits') renderAllHabits();
+            if (tab === 'dashboard') { renderStats();
+                updateHabitsMiniBar(); }
         }
 
         // ==================== DATA ====================
@@ -1278,6 +1463,36 @@
         try { var ss = localStorage.getItem('flowStreak'); if (ss) streakData = JSON.parse(ss); } catch(e) { streakData = { days: {}, currentStreak: 0 }; }
         function save() { try { localStorage.setItem('flowTasks', JSON.stringify(tasks)); } catch(e) {} }
         function saveStreak() { try { localStorage.setItem('flowStreak', JSON.stringify(streakData)); } catch(e) {} }
+
+        // ==================== MODAL ====================
+        var modalDate = null;
+
+        function openModal(dateStr) {
+            modalDate = dateStr;
+            document.getElementById('modalTaskDate').value = dateStr || '';
+            document.getElementById('modalTaskInput').value = '';
+            document.getElementById('modalTaskPriority').value = 'medium';
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('modalTaskInput').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            modalDate = null;
+        }
+
+        function addTaskFromModal() {
+            var text = document.getElementById('modalTaskInput').value.trim();
+            if (!text) return;
+            var date = document.getElementById('modalTaskDate').value || modalDate;
+            var priority = document.getElementById('modalTaskPriority').value;
+            tasks.push({ id: Date.now(), text: text, done: false, date: date || null, priority: priority || 'medium' });
+            save();
+            closeModal();
+            renderAll();
+            if (document.getElementById('tabCalendar').classList.contains('active')) renderCalendar2();
+            spawnParticles();
+        }
 
         // ==================== THEME ====================
         function toggleTheme() {
@@ -1322,11 +1537,12 @@
             var input = document.getElementById('taskInput');
             var text = input.value.trim();
             if (!text) return;
-            tasks.push({ id: Date.now(), text: text, done: false, date: null });
+            tasks.push({ id: Date.now(), text: text, done: false, date: null, priority: 'medium' });
             input.value = '';
             save();
             renderAll();
         }
+
         function toggleTask(id) {
             var task = tasks.find(function(t) { return t.id === id; });
             if (!task) return;
@@ -1336,19 +1552,34 @@
             if (!wasDone && task.done) { spawnParticles();
                 updateStreak(); }
             renderAll();
+            if (document.getElementById('tabCalendar').classList.contains('active')) renderCalendar2();
         }
+
         function deleteTask(id) { tasks = tasks.filter(function(t) { return t.id !== id; });
             save();
-            renderAll(); }
+            renderAll(); if (document.getElementById('tabCalendar').classList.contains('active')) renderCalendar2(); }
+
         function updateTaskDate(id, val) { var task = tasks.find(function(t) { return t.id === id; }); if (task) { task.date = val || null;
                 save();
                 renderAll(); } }
+
+        function cyclePriority(id) {
+            var task = tasks.find(function(t) { return t.id === id; });
+            if (!task) return;
+            if (!task.priority || task.priority === 'low') task.priority = 'medium';
+            else if (task.priority === 'medium') task.priority = 'high';
+            else task.priority = 'low';
+            save();
+            renderAll();
+        }
+
         function updateStreak() {
             var today = new Date().toISOString().split('T')[0];
             if (!streakData.days[today]) { streakData.days[today] = true; var y = new Date(Date.now() - 86400000).toISOString().split('T')[0];
                 streakData.currentStreak = streakData.days[y] ? streakData.currentStreak + 1 : 1;
                 saveStreak(); }
         }
+
         function getWeekProgress() {
             var today = new Date(),
                 dow = today.getDay(),
@@ -1360,13 +1591,34 @@
             return { daysActive: active, pct: Math.round((active / 7) * 100) };
         }
 
+        function getPriorityValue(p) { return p === 'high' ? 0 : p === 'medium' ? 1 : 2; }
+
         function renderTaskList() {
             var list = document.getElementById('taskList');
-            if (!tasks.length) { list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><small>Add one above</small></div>'; return; }
-            list.innerHTML = tasks.slice().sort(function(a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0); }).map(function(task) {
+            if (!tasks.length) { list.innerHTML = '<div class="empty-state">No tasks yet ✨<br><small>Add one above or click + on calendar</small></div>'; return; }
+            // Sort: undone first, then by priority (high->low), then by date (soonest first), then done at bottom
+            var sorted = tasks.slice().sort(function(a, b) {
+                if (a.done !== b.done) return a.done ? 1 : -1;
+                if (a.priority !== b.priority) return getPriorityValue(a.priority) - getPriorityValue(b.priority);
+                if (a.date && b.date) return a.date.localeCompare(b.date);
+                if (a.date) return -1;
+                if (b.date) return 1;
+                return b.id - a.id;
+            });
+            list.innerHTML = sorted.map(function(task) {
                 var today = new Date().toISOString().split('T')[0],
                     overdue = task.date && task.date < today && !task.done;
-                return '<li class="task-item"><input type="checkbox" class="task-checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + task.id + ')"><div class="task-content" onclick="toggleTask(' + task.id + ')"><div class="task-text ' + (task.done ? 'done' : '') + '">' + escapeHtml(task.text) + '</div><input type="date" class="date-picker-mini ' + (overdue ? 'overdue' : '') + '" value="' + (task.date || '') + '" onchange="updateTaskDate(' + task.id + ',this.value)" onclick="event.stopPropagation()"></div><button class="btn-danger" onclick="event.stopPropagation();deleteTask(' + task.id + ')">✕</button></li>';
+                var priority = task.priority || 'medium';
+                return '<li class="task-item">' +
+                    '<div class="task-priority ' + priority + '" title="' + priority + ' priority" onclick="event.stopPropagation();cyclePriority(' + task.id + ')"></div>' +
+                    '<input type="checkbox" class="task-checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + task.id + ')">' +
+                    '<div class="task-content" onclick="toggleTask(' + task.id + ')">' +
+                    '<div class="task-text ' + (task.done ? 'done' : '') + '">' + escapeHtml(task.text) + '</div>' +
+                    '<div class="task-meta">' +
+                    '<input type="date" class="date-picker-mini ' + (overdue ? 'overdue' : '') + '" value="' + (task.date || '') + '" onchange="updateTaskDate(' + task.id + ',this.value)" onclick="event.stopPropagation()">' +
+                    '<span class="priority-badge ' + priority + '" onclick="event.stopPropagation();cyclePriority(' + task.id + ')" title="Click to change priority">' + priority + '</span>' +
+                    '</div></div>' +
+                    '<button class="btn-danger" onclick="event.stopPropagation();deleteTask(' + task.id + ')">✕</button></li>';
             }).join('');
         }
 
@@ -1384,6 +1636,7 @@
             var ctx = document.getElementById('pieChart');
             if (window.pieChart) window.pieChart.destroy();
             window.pieChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Done', 'Pending'], datasets: [{ data: [done, Math.max(0, total - done)], backgroundColor: ['#34c759', '#0071e3'], borderWidth: 0 }] }, options: { cutout: '72%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 10 } } } } } });
+            updateHabitsMiniBar();
         }
 
         function renderCalendar() {
@@ -1396,7 +1649,7 @@
             tasks.forEach(function(t) { if (t.date) td[t.date] = true; });
             for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day other-month"></div>';
             for (var d = 1; d <= daysIn; d++) { var ds = calendarYear + '-' + String(calendarMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-                html += '<div class="cal-day' + (ds === today ? ' today' : '') + (td[ds] ? ' has-task' : '') + '">' + d + '</div>'; }
+                html += '<div class="cal-day' + (ds === today ? ' today' : '') + (td[ds] ? ' has-task' : '') + '" onclick="openModal(\'' + ds + '\')">' + d + '</div>'; }
             document.getElementById('calendarGrid').innerHTML = html;
         }
 
@@ -1419,7 +1672,8 @@
             var reader = new FileReader();
             reader.onload = function(e) { try { var imp = JSON.parse(e.target.result); if (Array.isArray(imp) && confirm('Import ' + imp.length + ' tasks?')) { tasks = imp;
                         save();
-                        renderAll(); } } catch(err) { alert('Invalid file'); } };
+                        renderAll();
+                        if (document.getElementById('tabCalendar').classList.contains('active')) renderCalendar2(); } } catch(err) { alert('Invalid file'); } };
             reader.readAsText(file);
             input.value = '';
         }
@@ -1604,21 +1858,23 @@
             var firstDay = new Date(calYear2, calMonth2, 1).getDay(),
                 daysIn = new Date(calYear2, calMonth2 + 1, 0).getDate(),
                 today = new Date().toISOString().split('T')[0];
-            for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day-cell other-month"><div class="cal-day-num"></div></div>';
+            var prevDays = new Date(calYear2, calMonth2, 0).getDate();
+            for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-day-cell other-month"><div class="cal-day-num">' + (prevDays - i) + '</div></div>';
             for (var d = 1; d <= daysIn; d++) {
                 var ds = calYear2 + '-' + String(calMonth2 + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'),
                     dayTasks = tasks.filter(function(t) { return t.date === ds; }),
                     taskHtml = '';
-                dayTasks.slice(0, 4).forEach(function(t) { var cls = t.done ? 'done' : (ds < today ? 'overdue' : 'pending');
-                    taskHtml += '<div class="cal-task-dot ' + cls + '" onclick="event.stopPropagation();toggleTask(' + t.id + ')">' + (t.done ? '✓ ' : '○ ') + escapeHtml(t.text).substring(0, 20) + '</div>'; });
-                if (dayTasks.length > 4) taskHtml += '<div class="cal-task-dot" style="opacity:0.5">+' + (dayTasks.length - 4) + ' more</div>';
-                html += '<div class="cal-day-cell' + (ds === today ? ' today' : '') + '"><div class="cal-day-num">' + d + '</div><div class="cal-day-tasks">' + taskHtml + '</div></div>';
+                dayTasks.slice(0, 3).forEach(function(t) { var cls = t.done ? 'done' : (ds < today ? 'overdue' : 'pending');
+                    taskHtml += '<div class="cal-task-dot ' + cls + '" onclick="event.stopPropagation();toggleTask(' + t.id + ')">' + (t.done ? '✓ ' : '○ ') + escapeHtml(t.text).substring(0, 18) + '</div>'; });
+                if (dayTasks.length > 3) taskHtml += '<div class="cal-task-dot" style="opacity:0.5">+' + (dayTasks.length - 3) + ' more</div>';
+                html += '<div class="cal-day-cell' + (ds === today ? ' today' : '') + '"><div class="cal-day-num-row"><div class="cal-day-num">' + d + '</div><button class="cal-add-btn" onclick="event.stopPropagation();openModal(\'' + ds + '\')" title="Add task">+</button></div><div class="cal-day-tasks">' + taskHtml + '</div></div>';
             }
             var tc = firstDay + daysIn,
                 rem = tc % 7 === 0 ? 0 : 7 - (tc % 7);
-            for (var r = 1; r <= rem; r++) html += '<div class="cal-day-cell other-month"><div class="cal-day-num"></div></div>';
+            for (var r = 1; r <= rem; r++) html += '<div class="cal-day-cell other-month"><div class="cal-day-num">' + r + '</div></div>';
             document.getElementById('calendarGrid2').innerHTML = html;
             renderUpcoming();
+            updateHabitsMiniBar();
         }
 
         function renderUpcoming() {
@@ -1654,7 +1910,8 @@
         function changeWater(d) { waterGlasses = Math.max(0, Math.min(8, waterGlasses + d));
             try { localStorage.setItem('flowWater_' + new Date().toISOString().split('T')[0], waterGlasses); } catch(e) {}
             renderWater();
-            renderHabitsChart(); }
+            renderHabitsChart();
+            updateHabitsMiniBar(); }
 
         function renderWater() { var pct = (waterGlasses / 8) * 100;
             document.getElementById('waterFill').style.height = pct + '%';
@@ -1663,7 +1920,8 @@
 
         function toggleHabit(key) { var today = new Date().toISOString().split('T')[0]; if (habits[key][today]) delete habits[key][today]; else habits[key][today] = true;
             saveHabits();
-            renderAllHabits(); }
+            renderAllHabits();
+            updateHabitsMiniBar(); }
 
         function getStreak(key) { var s = 0,
                 d = new Date(),
@@ -1685,15 +1943,37 @@
             document.getElementById('streak-' + key).textContent = getStreak(key);
             document.getElementById('dots-' + key).innerHTML = getWeekDots(key).map(function(d) { return '<div class="week-dot' + (d.done ? ' filled' : '') + (d.today ? ' today' : '') + '"></div>'; }).join(''); }
 
-        function renderHabitsChart() { var today = new Date().toISOString().split('T')[0],
+        function getHabitsDoneToday() {
+            var today = new Date().toISOString().split('T')[0],
                 done = waterGlasses >= 8 ? 1 : 0;
-            habitKeys.forEach(function(k) { if (habits[k][today]) done++; }); var total = habitKeys.length + 1,
+            habitKeys.forEach(function(k) { if (habits[k][today]) done++; });
+            return done;
+        }
+
+        function updateHabitsMiniBar() {
+            var done = getHabitsDoneToday();
+            var total = habitKeys.length + 1;
+            var pct = Math.round((done / total) * 100);
+            var labelEl = document.getElementById('habitsMiniLabel');
+            var fillEl = document.getElementById('habitsMiniFill');
+            var labelEl2 = document.getElementById('habitsMiniLabel2');
+            var fillEl2 = document.getElementById('habitsMiniFill2');
+            if (labelEl) labelEl.textContent = done + '/' + total;
+            if (fillEl) fillEl.style.width = pct + '%';
+            if (labelEl2) labelEl2.textContent = done + '/' + total;
+            if (fillEl2) fillEl2.style.width = pct + '%';
+        }
+
+        function renderHabitsChart() { var today = new Date().toISOString().split('T')[0],
+                done = getHabitsDoneToday(),
+                total = habitKeys.length + 1,
                 ctx = document.getElementById('habitsPieChart'); if (window.habitsChart) window.habitsChart.destroy();
             window.habitsChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Done', 'Remaining'], datasets: [{ data: [done, Math.max(0, total - done)], backgroundColor: ['#af52de', 'rgba(128,128,128,0.15)'], borderWidth: 0 }] }, options: { cutout: '72%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, font: { size: 11 }, color: document.body.classList.contains('dark') ? '#98989d' : '#86868b' } } } } }); }
 
         function renderAllHabits() { renderWater();
             habitKeys.forEach(function(k) { renderHabitCard(k); });
-            renderHabitsChart(); }
+            renderHabitsChart();
+            updateHabitsMiniBar(); }
 
         // ==================== UTILS ====================
         function escapeHtml(text) { var d = document.createElement('div');
@@ -1711,6 +1991,7 @@
                 saveStreak(); } }
         renderAll();
         renderPomo();
+        updateHabitsMiniBar();
         try { var sm = localStorage.getItem('flowMusic') || defaultMusic;
             renderMusic(sm); if (sm !== defaultMusic) document.getElementById('musicUrl').value = sm; } catch(e) {}
     </script>
