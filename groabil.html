@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G.R.O.A.B.I.L. - Teller Flow</title>
+    <style>
+        /* ============================================================
+           RESET & BASE - Apple Inspired
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 820px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* ============================================================
+           MAIN CONTENT (Left Column)
+           ============================================================ */
+        .main-content {
+            min-width: 0;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #d2d2d7;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #1d1d1f;
+        }
+
+        .header .sub {
+            font-size: 15px;
+            color: #6e6e73;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .header .sub span {
+            background: #e8e8ed;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1d1d1f;
+            margin-left: 6px;
+        }
+
+        /* ============================================================
+           GREEN HEART - Sticky on the Right
+           ============================================================ */
+        .heart-sidebar {
+            position: sticky;
+            top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 28px 20px 24px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e8e8ed;
+            width: 100%;
+        }
+
+        .heart-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6e6e73;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .heart-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        /* ----- GREEN HEART SVG ----- */
+        .heart-container {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .heart-svg {
+            width: 100px;
+            height: 100px;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .heart-svg .heart-outline {
+            fill: none;
+            stroke: #e8e8ed;
+            stroke-width: 3;
+        }
+
+        .heart-svg .heart-fill {
+            fill: #34c759;
+            transition: clip-path 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            clip-path: inset(100% 0 0 0);
+        }
+
+        /* Beating animation when heart is full */
+        @keyframes heartbeat {
+            0% {
+                transform: scale(1);
+            }
+
+            14% {
+                transform: scale(1.15);
+            }
+
+            28% {
+                transform: scale(1);
+            }
+
+            42% {
+                transform: scale(1.12);
+            }
+
+            70% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .heart-container.beating .heart-svg {
+            animation: heartbeat 1.2s ease-in-out infinite;
+        }
+
+        /* Glow effect when full */
+        .heart-container.beating {
+            filter: drop-shadow(0 0 20px rgba(52, 199, 89, 0.3));
+        }
+
+        .heart-text {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #1d1d1f;
+            margin-top: 2px;
+        }
+
+        .heart-status {
+            font-size: 13px;
+            color: #6e6e73;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .heart-status .count {
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        /* ============================================================
+           CARDS - Single Column, Apple Style
+           ============================================================ */
+        .flow-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px 24px 22px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e8e8ed;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
+            border-color: #d2d2d7;
+        }
+
+        .card.completed {
+            border-color: #34c759;
+            background: #f8fff8;
+            box-shadow: 0 2px 12px rgba(52, 199, 89, 0.10);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 8px;
+        }
+
+        .letter {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .card-title-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 17px;
+            color: #1d1d1f;
+            line-height: 1.3;
+        }
+
+        .card-sub {
+            font-size: 13px;
+            color: #6e6e73;
+            font-weight: 400;
+        }
+
+        .card-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .card-check label {
+            font-size: 14px;
+            color: #6e6e73;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 400;
+        }
+
+        /* Apple-style checkbox */
+        .apple-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #d2d2d7;
+            background: white;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .apple-check:checked {
+            background: #34c759;
+            border-color: #34c759;
+            transform: scale(1.02);
+        }
+
+        .apple-check:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .apple-check:hover {
+            border-color: #0a1a3a;
+        }
+
+        /* ============================================================
+           STEP BADGE
+           ============================================================ */
+        .step-badge {
+            font-size: 11px;
+            color: #8e8e93;
+            font-weight: 500;
+            background: #f5f5f7;
+            padding: 2px 12px;
+            border-radius: 20px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* ============================================================
+           COLOR CODING - Letter backgrounds
+           ============================================================ */
+        .letter-g {
+            background: #007aff;
+        }
+
+        .letter-r {
+            background: #34c759;
+        }
+
+        .letter-o {
+            background: #ff9500;
+        }
+
+        .letter-a {
+            background: #ff3b30;
+        }
+
+        .letter-b {
+            background: #5856d6;
+        }
+
+        .letter-i {
+            background: #af52de;
+        }
+
+        .letter-l {
+            background: #5ac8fa;
+        }
+
+        .card.completed .letter {
+            box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.25);
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.03);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .card.completed {
+            animation: pop 0.3s ease;
+        }
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
+        .footer-actions {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #e8e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .btn {
+            background: #0a1a3a;
+            color: white;
+            border: none;
+            padding: 11px 30px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:hover {
+            background: #1a3a6a;
+            transform: scale(1.01);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #0a1a3a;
+            border: 1.5px solid #d2d2d7;
+        }
+
+        .btn-outline:hover {
+            background: #f5f5f7;
+            border-color: #0a1a3a;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px 16px 40px;
+                gap: 24px;
+            }
+
+            .heart-sidebar {
+                position: relative;
+                top: 0;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 16px 20px;
+                gap: 8px 16px;
+                order: -1;
+            }
+
+            .heart-label {
+                margin-bottom: 0;
+                width: 100%;
+                text-align: center;
+            }
+
+            .heart-wrapper {
+                flex-direction: row;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .heart-container {
+                width: 60px;
+                height: 60px;
+            }
+
+            .heart-svg {
+                width: 60px;
+                height: 60px;
+            }
+
+            .heart-text {
+                font-size: 22px;
+                margin-top: 0;
+            }
+
+            .heart-status {
+                width: 100%;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .card {
+                padding: 16px 18px 18px;
+            }
+
+            .footer-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .footer-actions .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .card-header {
+                flex-wrap: wrap;
+            }
+
+            .card-check {
+                margin-left: 50px;
+            }
+
+            .letter {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .heart-container {
+                width: 48px;
+                height: 48px;
+            }
+
+            .heart-svg {
+                width: 48px;
+                height: 48px;
+            }
+
+            .heart-text {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- ============================================================
+    MAIN CONTENT (Left Column)
+    ============================================================ -->
+        <div class="main-content">
+
+            <!-- HEADER -->
+            <header class="header">
+                <h1>G.R.O.A.B.I.L.</h1>
+                <div class="sub">
+                    Teller Interaction Flow
+                    <span>Checklist</span>
+                </div>
+            </header>
+
+            <!-- FLOW LIST -->
+            <div class="flow-list" id="flowList">
+                <!-- Cards will be injected by JavaScript -->
+            </div>
+
+            <!-- FOOTER -->
+            <div class="footer-actions">
+                <button class="btn btn-outline" onclick="resetAll()">↺ Reset All</button>
+                <button class="btn" onclick="showSummary()">📋 View Summary</button>
+            </div>
+
+        </div>
+
+        <!-- ============================================================
+    GREEN HEART - Sticky Sidebar (Right Column)
+    ============================================================ -->
+        <aside class="heart-sidebar" id="heartSidebar">
+            <span class="heart-label">💚 Progress</span>
+            <div class="heart-wrapper">
+                <div class="heart-container" id="heartContainer">
+                    <svg class="heart-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Outline -->
+                        <path class="heart-outline"
+                            d="M50 88.5C50 88.5 10 60 10 35C10 20 22 8 35 8C45 8 50 16 50 16C50 16 55 8 65 8C78 8 90 20 90 35C90 60 50 88.5 50 88.5Z" />
+                        <!-- Fill (clipped from bottom) -->
+                        <path class="heart-fill" id="heartFill"
+                            d="M50 88.5C50 88.5 10 60 10 35C10 20 22 8 35 8C45 8 50 16 50 16C50 16 55 8 65 8C78 8 90 20 90 35C90 60 50 88.5 50 88.5Z" />
+                    </svg>
+                </div>
+                <span class="heart-text" id="heartText">0%</span>
+            </div>
+            <span class="heart-status">
+                <span class="count" id="completedCount">0</span> of <span id="totalCount">7</span> completed
+            </span>
+        </aside>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // DATA - G.R.O.A.B.I.L. Objectives (No prompts)
+        // ============================================================
+        const data = [
+            { id: 'g', letter: 'G', title: 'Greeting', subtitle: 'Read the room, match energy, set the tone', color: 'g' },
+            { id: 'r', letter: 'R', title: 'Requests & Alternatives', subtitle: 'Fulfill request, suggest safer/traceable options', color: 'r' },
+            { id: 'o', letter: 'O', title: 'Opportunities', subtitle: 'Pitch products based on customer profile', color: 'o' },
+            { id: 'a', letter: 'A', title: 'Advice', subtitle: 'Save them money on fees, charges, or interest', color: 'a' },
+            { id: 'b', letter: 'B', title: 'Borrowing', subtitle: 'Explore credit needs (LOC, HELOC, loans)', color: 'b' },
+            { id: 'i', letter: 'I', title: 'Investments', subtitle: 'Mention TFSA, RRSP, FHSA, RESP, Non-Reg', color: 'i' },
+            { id: 'l', letter: 'L', title: 'Lasting Impression', subtitle: 'Survey pitch, thank them, invite them back', color: 'l' }
+        ];
+
+        const totalSteps = data.length;
+
+        // ============================================================
+        // BUILD CARDS
+        // ============================================================
+        const list = document.getElementById('flowList');
+
+        data.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = `card card-${item.color}`;
+            card.id = `card-${item.id}`;
+
+            card.innerHTML = `
+            <div class="card-header">
+                <div class="letter letter-${item.color}">${item.letter}</div>
+                <div class="card-title-group">
+                    <span class="card-title">${item.title}</span>
+                    <span class="card-sub">${item.subtitle}</span>
+                </div>
+                <div class="card-check">
+                    <label for="check-${item.id}">Done</label>
+                    <input type="checkbox" class="apple-check" id="check-${item.id}" onchange="updateHeart()">
+                </div>
+            </div>
+            <div class="step-badge">Step ${index + 1} of ${totalSteps}</div>
+        `;
+
+            list.appendChild(card);
+        });
+
+        // ============================================================
+        // HEART FUNCTION
+        // ============================================================
+        function updateHeart() {
+            const checks = document.querySelectorAll('.apple-check');
+            let completed = 0;
+            checks.forEach(cb => {
+                if (cb.checked) completed++;
+            });
+
+            const percentage = Math.round((completed / totalSteps) * 100);
+            const fill = document.getElementById('heartFill');
+            const text = document.getElementById('heartText');
+            const countDisplay = document.getElementById('completedCount');
+            const container = document.getElementById('heartContainer');
+
+            // Fill heart from bottom using clip-path
+            const clipValue = 100 - percentage;
+            fill.style.clipPath = `inset(${clipValue}% 0 0 0)`;
+
+            text.textContent = percentage + '%';
+            countDisplay.textContent = completed;
+
+            // Beating animation when 100% full
+            if (percentage === 100 && completed === totalSteps) {
+                container.classList.add('beating');
+            } else {
+                container.classList.remove('beating');
+            }
+
+            // Card styling
+            document.querySelectorAll('.card').forEach(card => {
+                const cb = card.querySelector('.apple-check');
+                if (cb && cb.checked) {
+                    card.classList.add('completed');
+                } else {
+                    card.classList.remove('completed');
+                }
+            });
+        }
+
+        // ============================================================
+        // RESET
+        // ============================================================
+        function resetAll() {
+            document.querySelectorAll('.apple-check').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('completed'));
+            document.getElementById('heartContainer').classList.remove('beating');
+            updateHeart();
+        }
+
+        // ============================================================
+        // SUMMARY
+        // ============================================================
+        function showSummary() {
+            let summary = '📋 G.R.O.A.B.I.L. Summary\n';
+            summary += '═'.repeat(44) + '\n\n';
+            let completed = 0;
+
+            data.forEach(item => {
+                const checked = document.getElementById(`check-${item.id}`).checked;
+                const status = checked ? '✅' : '⬜';
+                if (checked) completed++;
+
+                summary += `${status} ${item.letter}. ${item.title}\n`;
+                summary += `   ${item.subtitle}\n\n`;
+            });
+
+            summary += '═'.repeat(44) + '\n';
+            summary += `Progress: ${completed}/${totalSteps} completed (${Math.round((completed / totalSteps) * 100)}%)\n`;
+            summary += completed === totalSteps ? '💚 Heart is full! Ready for customer interaction.' : '📌 Keep going!';
+
+            alert(summary);
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.getElementById('totalCount').textContent = totalSteps;
+        updateHeart();
+    </script>
+
+</body>
+
+</html>
