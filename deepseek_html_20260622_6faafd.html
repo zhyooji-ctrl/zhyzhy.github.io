@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>recomp · tracker</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #e8e8e8;
+            --text: #1a1a1a;
+            --text-muted: #999;
+            --accent: #000;
+            --green: #2e7d32;
+            --green-light: #e8f5e9;
+            --red: #c62828;
+            --radius: 6px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 32px 20px 80px;
+        }
+
+        /* ── Header ──────────────────── */
+        .header {
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+        }
+        .header .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Stats Row ──────────────── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .stat {
+            text-align: center;
+            padding: 16px 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        .stat .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .stat .label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* ── Pie ────────────────────── */
+        .pie-section {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+        .pie-section canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        .pie-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── Week Nav ───────────────── */
+        .week-nav {
+            display: flex;
+            gap: 0;
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .week-nav button {
+            flex: 1;
+            padding: 10px 4px;
+            border: none;
+            background: var(--surface);
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-muted);
+            letter-spacing: 0.2px;
+            transition: all 0.15s;
+            border-right: 1px solid var(--border);
+        }
+        .week-nav button:last-child {
+            border-right: none;
+        }
+        .week-nav button.active {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+        }
+        .week-nav button.completed-nav {
+            color: var(--green);
+        }
+        .week-nav button.completed-nav.active {
+            background: var(--green);
+            color: #fff;
+        }
+
+        /* ── Day Content ────────────── */
+        .day-content {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .day-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .day-content h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: -0.2px;
+        }
+        .day-content .day-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* ── Exercise Row ───────────── */
+        .ex-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+            flex-wrap: wrap;
+        }
+        .ex-row:last-child {
+            border-bottom: none;
+        }
+        .ex-row.done {
+            opacity: 0.5;
+        }
+        .ex-row.done .ex-name {
+            text-decoration: line-through;
+        }
+
+        .ex-check {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border: 1.5px solid #ccc;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            font-size: 12px;
+            color: transparent;
+            background: #fff;
+        }
+        .ex-check.checked {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+        }
+        .ex-check:hover {
+            border-color: #888;
+        }
+
+        .ex-info {
+            flex: 1;
+            min-width: 120px;
+        }
+        .ex-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .ex-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .ex-inputs {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .ex-inputs input {
+            width: 52px;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-align: center;
+            background: #fff;
+            color: var(--text);
+        }
+        .ex-inputs input:focus {
+            outline: none;
+            border-color: #888;
+        }
+        .ex-inputs .notes-inp {
+            width: 100px;
+            text-align: left;
+        }
+
+        .ex-video {
+            flex-shrink: 0;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-bottom: 1px dotted #ccc;
+            padding-bottom: 1px;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .ex-video:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── Buttons ────────────────── */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 0.2px;
+            transition: opacity 0.15s;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        /* ── Weight Log Tab ──────────── */
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            margin-top: 16px;
+        }
+        .log-table th {
+            text-align: left;
+            padding: 8px 6px;
+            border-bottom: 1.5px solid var(--border);
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .log-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .log-table input,
+        .log-table select {
+            width: 70px;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: #fff;
+            color: var(--text);
+            text-align: center;
+        }
+        .log-table input:focus,
+        .log-table select:focus {
+            outline: none;
+            border-color: #888;
+        }
+        .pr-badge {
+            color: var(--green);
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        /* ── Responsive ──────────────── */
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px 14px 60px;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat {
+                padding: 12px 6px;
+            }
+            .stat .value {
+                font-size: 1.3rem;
+            }
+            .ex-row {
+                gap: 8px;
+                padding: 12px 0;
+            }
+            .ex-inputs input {
+                width: 42px;
+                font-size: 0.7rem;
+            }
+            .ex-inputs .notes-inp {
+                width: 70px;
+            }
+            .week-nav button {
+                font-size: 0.6rem;
+                padding: 8px 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ═══════════ HEADER ═══════════ -->
+        <div class="header">
+            <h1>recomp</h1>
+            <p class="meta">5'8" · 180 lbs · home + gym · pull-up focus</p>
+        </div>
+
+        <!-- ═══════════ STATS ═══════════ -->
+        <div class="stats">
+            <div class="stat"><div class="value" id="sessionsCompleted">0</div><div class="label">Sessions</div></div>
+            <div class="stat"><div class="value" id="pullUpMax">0</div><div class="label">Max Pull-Ups</div></div>
+            <div class="stat"><div class="value" id="streakDays">0</div><div class="label">Streak</div></div>
+            <div class="stat"><div class="value" id="totalWeight">0</div><div class="label">Lbs Lifted</div></div>
+        </div>
+
+        <!-- ═══════════ PIE ═══════════ -->
+        <div class="pie-section">
+            <canvas id="pieCanvas" width="100" height="100"></canvas>
+            <div class="pie-label">weekly completion</div>
+        </div>
+
+        <!-- ═══════════ WEEK NAV ═══════════ -->
+        <div class="week-nav" id="weekNav">
+            <button data-day="monday">Mon</button>
+            <button data-day="tuesday">Tue</button>
+            <button data-day="wednesday">Wed</button>
+            <button data-day="thursday">Thu</button>
+            <button data-day="friday">Fri</button>
+            <button data-day="weights">Log</button>
+        </div>
+
+        <!-- ═══════════ DAY CONTENT ═══════════ -->
+        <div id="dayContainer"></div>
+
+    </div>
+
+    <script>
+        // ═══════════ DATA ═══════════
+        const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        const dayMeta = {
+            monday: { title: 'Monday', sub: 'Home — Pull-Up Negatives + Upper Push' },
+            tuesday: { title: 'Tuesday', sub: 'Gym — Lower Body Heavy' },
+            wednesday: { title: 'Wednesday', sub: 'Home — Band Pull-Ups + Shoulders/Arms' },
+            thursday: { title: 'Thursday', sub: 'Gym — Back & Glutes' },
+            friday: { title: 'Friday', sub: 'Home — Isometric Holds + Full Body Pump' },
+        };
+
+        const exercises = {
+            monday: [
+                { name: 'Negative Pull-Ups', sets: '4', reps: '3-4', vid: 'https://youtu.be/3YvfRx31xDE' },
+                { name: 'DB Bench Press', sets: '3', reps: '8-10', vid: 'https://youtu.be/VmBME2yGNiE' },
+                { name: 'Dips', sets: '3', reps: 'max', vid: 'https://youtu.be/0326dy_-CAQ' },
+                { name: 'Single-Arm DB Row', sets: '3', reps: '10/arm', vid: 'https://youtu.be/pYpqU3q8o5E' },
+                { name: 'Band Pull-Aparts', sets: '3', reps: '20', vid: 'https://youtu.be/f5vcer7nXf4' },
+            ],
+            tuesday: [
+                { name: 'Barbell Back Squat', sets: '4', reps: '8-10', vid: 'https://youtu.be/1oed-UmAxFs' },
+                { name: 'Romanian Deadlift', sets: '3', reps: '8-10', vid: 'https://youtu.be/JCXUYuzNgTs' },
+                { name: 'Hip Thrust', sets: '3', reps: '12-15', vid: 'https://youtu.be/LM8XOFYXVpY' },
+                { name: 'Leg Extension', sets: '3', reps: '12-15', vid: 'https://youtu.be/Y0tUTZPRnas' },
+                { name: 'Hamstring Curl', sets: '3', reps: '12-15', vid: 'https://youtu.be/F4883k9UIzg' },
+                { name: 'Calf Raises', sets: '4', reps: '15-20', vid: 'https://youtu.be/gwLv6x3b5oA' },
+            ],
+            wednesday: [
+                { name: 'Band-Assisted Pull-Ups', sets: '4', reps: 'max', vid: 'https://youtu.be/vGLtMn76hMM' },
+                { name: 'Seated DB Shoulder Press', sets: '3', reps: '8-10', vid: 'https://youtu.be/qEwKUP_4r2Q' },
+                { name: 'Lateral Raises', sets: '3', reps: '15', vid: 'https://youtu.be/3VcKaXp_zJc' },
+                { name: 'Band-Assisted Chin-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/_N1t2YUB_ws' },
+                { name: 'Hammer Curls', sets: '3', reps: '12', vid: 'https://youtu.be/TwD7xJUmXJI' },
+                { name: 'Overhead Tricep Extension', sets: '3', reps: '12', vid: 'https://youtu.be/nRiJVH03xRY' },
+            ],
+            thursday: [
+                { name: 'Lat Pulldowns', sets: '4', reps: '10-12', vid: 'https://youtu.be/CAwf7n2mRIc' },
+                { name: 'Seated Cable Rows', sets: '3', reps: '10-12', vid: 'https://youtu.be/GZbfZ033f74' },
+                { name: 'Face Pulls', sets: '3', reps: '15', vid: 'https://youtu.be/0Po47vvj8g4' },
+                { name: 'Straight-Arm Cable Pulldowns', sets: '3', reps: '12-15', vid: 'https://youtu.be/5h7jCPfZ7oU' },
+                { name: 'Hip Thrust', sets: '3', reps: '15', vid: 'https://youtu.be/LM8XOFYXVpY' },
+                { name: 'Dead Hang', sets: '3', reps: 'max hold', vid: 'https://youtu.be/0NfqHDdx_3U' },
+            ],
+            friday: [
+                { name: 'Isometric Pull-Up Holds', sets: '6', reps: '10-20s', vid: 'https://youtu.be/3YvfRx31xDE' },
+                { name: 'Goblet Squat', sets: '3', reps: '15', vid: 'https://youtu.be/meE3sjR3mtY' },
+                { name: 'Push-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/IODxDxX7oi4' },
+                { name: 'Bulgarian Split Squats', sets: '2', reps: '12/leg', vid: 'https://youtu.be/2C-uNgKwPLE' },
+                { name: 'Lateral Raises', sets: '3', reps: '15', vid: 'https://youtu.be/3VcKaXp_zJc' },
+                { name: 'Band Pull-Aparts', sets: '3', reps: '20', vid: 'https://youtu.be/f5vcer7nXf4' },
+            ],
+        };
+
+        const weightExercises = [
+            'DB Bench Press', 'Pull-Ups', 'Barbell Back Squat', 'Romanian Deadlift', 'Hip Thrust',
+            'Seated DB Shoulder Press', 'Lat Pulldowns', 'Seated Cable Rows', 'Goblet Squat', 'Dips',
+            'Single-Arm DB Row', 'Hammer Curls', 'Overhead Tricep Extension',
+        ];
+
+        // ═══════════ STATE ═══════════
+        function loadState() {
+            try {
+                const s = localStorage.getItem('recompTracker');
+                if (s) return JSON.parse(s);
+            } catch (e) {}
+            return {
+                completedDays: {},
+                exData: {},
+                weightLog: {},
+                pullUpMax: 0,
+                pullUpHistory: [],
+                week: getWeekStr(),
+            };
+        }
+
+        function saveState() {
+            try { localStorage.setItem('recompTracker', JSON.stringify(state)); } catch (e) {}
+        }
+
+        function getWeekStr() {
+            const d = new Date();
+            const s = new Date(d.getFullYear(), 0, 1);
+            return d.getFullYear() + '-W' + Math.ceil(((d - s) / 86400000 + s.getDay() + 1) / 7);
+        }
+
+        let state = loadState();
+        if (state.week !== getWeekStr()) {
+            state.completedDays = {};
+            state.exData = {};
+            state.week = getWeekStr();
+            saveState();
+        }
+
+        // ═══════════ RENDER ────────────
+        function getExData(key) {
+            return state.exData[key] || { w: '', r: '', n: '', done: false };
+        }
+
+        function renderDay(day) {
+            const container = document.getElementById('dayContainer');
+            if (day === 'weights') {
+                renderWeightLogTab(container);
+                return;
+            }
+            const meta = dayMeta[day];
+            let html = `
+            <div class="day-content active" id="day-${day}">
+              <h2>${meta.title}</h2>
+              <p class="day-sub">${meta.sub}</p>
+              <div class="ex-list" id="list-${day}">`;
+            exercises[day].forEach((ex, i) => {
+                const key = day + '-' + i;
+                const d = getExData(key);
+                html += `
+            <div class="ex-row ${d.done ? 'done' : ''}" id="row-${key}">
+              <div class="ex-check ${d.done ? 'checked' : ''}" data-key="${key}">${d.done ? '✓' : ''}</div>
+              <div class="ex-info">
+                <div class="ex-name">${ex.name}</div>
+                <div class="ex-meta">${ex.sets} sets · ${ex.reps} reps</div>
+              </div>
+              <div class="ex-inputs">
+                <input type="number" value="${d.w}" data-key="${key}" data-field="w" placeholder="lbs" min="0">
+                <input type="number" value="${d.r}" data-key="${key}" data-field="r" placeholder="reps" min="0">
+                <input type="text" value="${d.n}" data-key="${key}" data-field="n" class="notes-inp" placeholder="note">
+              </div>
+              <a href="${ex.vid}" target="_blank" rel="noopener" class="ex-video">form →</a>
+            </div>`;
+            });
+            html += `</div>
+            <button class="btn" id="btn-${day}">${state.completedDays[day] ? '✓ Completed' : 'Mark Complete'}</button>
+          </div>`;
+            container.innerHTML = html;
+
+            // Attach listeners
+            const list = document.getElementById('list-' + day);
+            list.querySelectorAll('.ex-check').forEach(cb => {
+                cb.addEventListener('click', function() { toggleEx(this.dataset.key); });
+            });
+            list.querySelectorAll('input').forEach(inp => {
+                inp.addEventListener('change', function() {
+                    updateExData(this.dataset.key, this.dataset.field, this.value);
+                });
+            });
+            document.getElementById('btn-' + day).addEventListener('click', function() { markDay(day); });
+        }
+
+        function renderWeightLogTab(container) {
+            let html = `
+            <div class="day-content active" id="day-weights">
+              <h2>Weight Log</h2>
+              <p class="day-sub">Track your lifts & personal records</p>
+              <table class="log-table">
+                <thead><tr><th>Exercise</th><th>Best</th><th>Reps</th><th>Today wt</th><th>Today reps</th><th>Note</th></tr></thead>
+                <tbody id="wl-body">`;
+            weightExercises.forEach(ex => {
+                const log = state.weightLog[ex] || { bw: 0, br: 0, tw: '', tr: '', n: '' };
+                const isPR = log.tw && log.tr && (parseFloat(log.tw) > log.bw || (parseFloat(log.tw) == log
+                    .bw && parseFloat(log.tr) > log.br));
+                html += `<tr>
+              <td>${ex}</td>
+              <td>${log.bw || '—'}</td>
+              <td>${log.br || '—'}</td>
+              <td><input type="number" value="${log.tw}" data-ex="${ex}" class="wl-tw" placeholder="lbs" min="0"></td>
+              <td><input type="number" value="${log.tr}" data-ex="${ex}" class="wl-tr" placeholder="reps" min="0"></td>
+              <td><input type="text" value="${log.n}" data-ex="${ex}" class="wl-note" placeholder="—"></td>
+            </tr>`;
+            });
+            html += `</tbody></table>
+            <button class="btn" id="btn-save-wl">Save Weights</button>
+            <br><br>
+            <h2>Pull-Up Log</h2>
+            <table class="log-table">
+              <thead><tr><th>Date</th><th>Method</th><th>Sets × Reps</th><th>Note</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><input type="date" id="pu-date"></td>
+                  <td><select id="pu-method"><option>Negatives</option><option>Band-Assisted</option><option>Isometric</option><option>Full Pull-Ups</option></select></td>
+                  <td><input type="text" id="pu-sr" placeholder="4×3" style="width:80px;"></td>
+                  <td><input type="text" id="pu-note" placeholder="—" style="width:120px;"></td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="btn btn-ghost" id="btn-pu-log" style="margin-top:8px;">+ Log Pull-Up</button>
+            <div id="pu-history" style="margin-top:12px;font-size:0.75rem;color:var(--text-muted);"></div>
+          </div>`;
+            container.innerHTML = html;
+
+            // Weight log inputs
+            document.querySelectorAll('.wl-tw').forEach(inp => {
+                inp.addEventListener('change', function() {
+                    const ex = this.dataset.ex;
+                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '',
+                        n: '' };
+                    state.weightLog[ex].tw = this.value;
+                    saveState();
+                });
+            });
+            document.querySelectorAll('.wl-tr').forEach(inp => {
+                inp.addEventListener('change', function() {
+                    const ex = this.dataset.ex;
+                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '',
+                        n: '' };
+                    state.weightLog[ex].tr = this.value;
+                    saveState();
+                });
+            });
+            document.querySelectorAll('.wl-note').forEach(inp => {
+                inp.addEventListener('change', function() {
+                    const ex = this.dataset.ex;
+                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '',
+                        n: '' };
+                    state.weightLog[ex].n = this.value;
+                    saveState();
+                });
+            });
+            document.getElementById('btn-save-wl').addEventListener('click', saveWeightLog);
+            document.getElementById('btn-pu-log').addEventListener('click', logPullUp);
+            renderPullUpHistory();
+        }
+
+        // ═══════════ ACTIONS ═══════════
+        function toggleEx(key) {
+            if (!state.exData[key]) state.exData[key] = { w: '', r: '', n: '', done: false };
+            state.exData[key].done = !state.exData[key].done;
+            saveState();
+            const row = document.getElementById('row-' + key);
+            const check = row ? row.querySelector('.ex-check') : null;
+            if (row) row.classList.toggle('done', state.exData[key].done);
+            if (check) {
+                check.classList.toggle('checked', state.exData[key].done);
+                check.textContent = state.exData[key].done ? '✓' : '';
+            }
+            updateAll();
+        }
+
+        function updateExData(key, field, value) {
+            if (!state.exData[key]) state.exData[key] = { w: '', r: '', n: '', done: false };
+            state.exData[key][field] = value;
+            saveState();
+            updateAll();
+        }
+
+        function markDay(day) {
+            const allDone = exercises[day].every((_, i) => {
+                const d = state.exData[day + '-' + i];
+                return d && d.done;
+            });
+            if (!allDone && !state.completedDays[day]) {
+                if (!confirm('Not all exercises checked. Mark complete anyway?')) return;
+            }
+            state.completedDays[day] = !state.completedDays[day];
+            saveState();
+            updateAll();
+            renderDay(day);
+            updateNavActive(day);
+        }
+
+        function saveWeightLog() {
+            weightExercises.forEach(ex => {
+                const log = state.weightLog[ex] || { bw: 0, br: 0, tw: '', tr: '', n: '' };
+                const tw = parseFloat(log.tw) || 0;
+                const tr = parseFloat(log.tr) || 0;
+                if (tw > 0 && tr > 0) {
+                    if (tw > log.bw || (tw === log.bw && tr > log.br)) {
+                        log.bw = tw;
+                        log.br = tr;
+                    }
+                }
+                log.tw = '';
+                log.tr = '';
+                log.n = '';
+                state.weightLog[ex] = log;
+            });
+            saveState();
+            alert('Weights saved.');
+            renderDay('weights');
+        }
+
+        function logPullUp() {
+            const date = document.getElementById('pu-date').value || new Date().toISOString().slice(0, 10);
+            const method = document.getElementById('pu-method').value;
+            const sr = document.getElementById('pu-sr').value;
+            const note = document.getElementById('pu-note').value;
+            if (!sr) return alert('Enter sets × reps.');
+            state.pullUpHistory.unshift({ date, method, sr, note });
+            if (method === 'Full Pull-Ups') {
+                const m = sr.match(/(\d+)×(\d+)/);
+                if (m && parseInt(m[2]) > state.pullUpMax) state.pullUpMax = parseInt(m[2]);
+            }
+            saveState();
+            document.getElementById('pu-sr').value = '';
+            document.getElementById('pu-note').value = '';
+            renderPullUpHistory();
+            updateAll();
+            alert('Pull-up logged.');
+        }
+
+        function renderPullUpHistory() {
+            const el = document.getElementById('pu-history');
+            if (!el) return;
+            if (state.pullUpHistory.length === 0) { el.innerHTML = '<p>No entries yet.</p>'; return; }
+            let h = '<table class="log-table"><thead><tr><th>Date</th><th>Method</th><th>Sets×Reps</th><th>Note</th></tr></thead><tbody>';
+            state.pullUpHistory.slice(0, 15).forEach(e => {
+                h +=
+                    `<tr><td>${e.date}</td><td>${e.method}</td><td>${e.sr}</td><td>${e.note || '—'}</td></tr>`;
+            });
+            h += '</tbody></table>';
+            el.innerHTML = h;
+        }
+
+        // ═══════════ UPDATE ALL ═══════════
+        function updateAll() {
+            const completed = weekDays.filter(d => state.completedDays[d]).length;
+            document.getElementById('sessionsCompleted').textContent = completed;
+            document.getElementById('pullUpMax').textContent = state.pullUpMax || 0;
+
+            // Streak
+            let streak = 0;
+            const today = new Date().getDay();
+            const map = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+            for (let i = today; i >= 1; i--) {
+                if (map[i] && state.completedDays[map[i]]) streak++;
+                else if (map[i]) break;
+            }
+            document.getElementById('streakDays').textContent = streak;
+
+            // Total weight
+            let tw = 0;
+            Object.values(state.exData).forEach(d => { if (d.w && d.r && d.done) tw += parseFloat(d.w) * parseFloat(d
+                    .r); });
+            document.getElementById('totalWeight').textContent = Math.round(tw).toLocaleString();
+
+            drawPie();
+            updateNavBadges();
+        }
+
+        function drawPie() {
+            const canvas = document.getElementById('pieCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const total = 5;
+            const done = weekDays.filter(d => state.completedDays[d]).length;
+            ctx.clearRect(0, 0, 100, 100);
+            const cx = 50,
+                cy = 50,
+                r = 40;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#eee';
+            ctx.fill();
+            if (done > 0) {
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (done / total) * Math.PI * 2);
+                ctx.fillStyle = '#2e7d32';
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#fafafa';
+            ctx.fill();
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 16px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${done}/${total}`, cx, cy);
+        }
+
+        function updateNavBadges() {
+            document.querySelectorAll('.week-nav button[data-day]').forEach(btn => {
+                const day = btn.dataset.day;
+                if (weekDays.includes(day)) {
+                    btn.classList.toggle('completed-nav', !!state.completedDays[day]);
+                }
+            });
+        }
+
+        function updateNavActive(activeDay) {
+            document.querySelectorAll('.week-nav button').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`.week-nav button[data-day="${activeDay}"]`);
+            if (btn) btn.classList.add('active');
+        }
+
+        // ═══════════ NAVIGATION ═══════════
+        let currentTab = 'monday';
+
+        function navigateTo(day) {
+            currentTab = day;
+            updateNavActive(day);
+            renderDay(day);
+            updateAll();
+        }
+
+        document.getElementById('weekNav').addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON' && e.target.dataset.day) {
+                navigateTo(e.target.dataset.day);
+            }
+        });
+
+        // ═══════════ INIT ═══════════
+        function init() {
+            navigateTo('monday');
+            updateAll();
+        }
+        init();
+    </script>
+</body>
+</html>
