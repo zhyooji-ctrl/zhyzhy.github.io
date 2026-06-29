@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Daily Habit Tracker • holistic goals</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f2eb;
+      font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      color: #2e2b26;
+    }
+
+    .tracker-container {
+      max-width: 700px;
+      width: 100%;
+      background: #fffef9;
+      border-radius: 2.5rem;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.05), 0 8px 18px rgba(0, 0, 0, 0.06);
+      padding: 1.8rem 1.5rem 2.2rem;
+      border: 1px solid #ede6d8;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #4a3f35;
+      margin-bottom: 0.2rem;
+    }
+    h1 span {
+      background: #e6dccb;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.2rem 1rem;
+      border-radius: 3rem;
+      letter-spacing: 0.3px;
+      color: #3e3629;
+    }
+
+    .date-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.8rem;
+      color: #6b5e4f;
+      font-weight: 500;
+      background: #faf7f0;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 0.95rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    #currentDate {
+      font-weight: 600;
+      color: #2d2a24;
+      background: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+    }
+
+    .category {
+      margin-bottom: 1.7rem;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.7rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #7b6e5d;
+      border-bottom: 1px solid #e7dfcf;
+      padding-bottom: 0.35rem;
+    }
+    .category-header i {
+      font-style: normal;
+      font-size: 1.1rem;
+    }
+
+    .habits-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .habit-item {
+      background: #ffffff;
+      border: 1px solid #e2d9ca;
+      border-radius: 2.5rem;
+      padding: 0.5rem 1.1rem 0.5rem 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+      background: #fefcf8;
+      flex: 1 0 auto;
+      justify-content: space-between;
+      min-width: 140px;
+    }
+
+    .habit-item:hover {
+      border-color: #cbb89e;
+      background: #fffdf7;
+    }
+
+    .habit-label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #3e3a33;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .habit-label input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 1.3rem;
+      height: 1.3rem;
+      border: 2px solid #cdbc9f;
+      border-radius: 0.45rem;
+      background: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.15s;
+      margin-right: 0.1rem;
+    }
+    .habit-label input[type="checkbox"]:checked {
+      background: #b89b7b;
+      border-color: #8b7356;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-size: 0.9rem;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .habit-text {
+      font-size: 0.9rem;
+      text-transform: lowercase;
+    }
+    .habit-text::first-letter {
+      text-transform: uppercase;
+    }
+
+    .progress-section {
+      margin-top: 2rem;
+      background: #f6f1e7;
+      border-radius: 2rem;
+      padding: 1.2rem 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border: 1px solid #e2d7c4;
+    }
+    .progress-text {
+      font-weight: 600;
+      color: #4f4438;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .progress-bar-bg {
+      flex: 2;
+      min-width: 180px;
+      height: 10px;
+      background: #e1d6c4;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: #8f7a60;
+      border-radius: 20px;
+      transition: width 0.35s ease;
+    }
+    .reset-btn {
+      background: transparent;
+      border: 1px solid #cfbea4;
+      background: #fffbf5;
+      padding: 0.5rem 1.2rem;
+      border-radius: 2.5rem;
+      font-weight: 500;
+      color: #4e4337;
+      cursor: pointer;
+      font-size: 0.8rem;
+      letter-spacing: 0.3px;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .reset-btn:hover {
+      background: #ede3d2;
+      border-color: #b1977a;
+    }
+
+    .quote {
+      margin-top: 0.8rem;
+      font-size: 0.8rem;
+      color: #8f806b;
+      text-align: center;
+      font-style: italic;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0.6rem; }
+      .tracker-container { padding: 1.2rem 1rem; }
+      .habit-item { min-width: 120px; padding: 0.4rem 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="tracker-container">
+    <h1>
+      🌿 daily rhythm
+      <span>habits</span>
+    </h1>
+    <div class="date-header">
+      <span>📅 today</span>
+      <span id="currentDate"></span>
+    </div>
+
+    <!-- PHYSICAL -->
+    <div class="category">
+      <div class="category-header"><i>🧘</i> PHYSICAL</div>
+      <div class="habits-grid" id="physical-habits"></div>
+    </div>
+
+    <!-- MENTAL WELLNESS -->
+    <div class="category">
+      <div class="category-header"><i>🌱</i> MENTAL WELLNESS</div>
+      <div class="habits-grid" id="mental-habits"></div>
+    </div>
+
+    <!-- SCHOOL -->
+    <div class="category">
+      <div class="category-header"><i>📚</i> SCHOOL</div>
+      <div class="habits-grid" id="school-habits"></div>
+    </div>
+
+    <!-- CHORES -->
+    <div class="category">
+      <div class="category-header"><i>🏡</i> CHORES</div>
+      <div class="habits-grid" id="chores-habits"></div>
+    </div>
+
+    <!-- OTHER GOALS -->
+    <div class="category">
+      <div class="category-header"><i>✨</i> OTHER GOALS</div>
+      <div class="habits-grid" id="other-habits"></div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-text">
+        <span>✔️</span> <span id="progressCount">0</span>/<span id="totalHabits">12</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+      </div>
+      <button class="reset-btn" id="resetButton">
+        <span>↺</span> reset today
+      </button>
+    </div>
+    <div class="quote" id="dailyQuote"></div>
+  </div>
+
+  <script>
+    (function() {
+      // ----- HABIT DEFINITIONS (match your objectives exactly) -----
+      const HABIT_STRUCTURE = [
+        { category: "physical", habits: ["morning stretch", "workout", "walk >30mins"] },
+        { category: "mental", habits: ["devotion/pray", "read/listen podcasts", "passion project"] },
+        { category: "school", habits: ["ENGL1238"] },
+        { category: "chores", habits: ["entrance", "kitchen", "dining space", "living space"] },
+        { category: "other", habits: ["drive", "dance", "new skill"] }
+      ];
+
+      // DOM element references
+      const physicalContainer = document.getElementById('physical-habits');
+      const mentalContainer = document.getElementById('mental-habits');
+      const schoolContainer = document.getElementById('school-habits');
+      const choresContainer = document.getElementById('chores-habits');
+      const otherContainer = document.getElementById('other-habits');
+      
+      const progressCountSpan = document.getElementById('progressCount');
+      const totalHabitsSpan = document.getElementById('totalHabits');
+      const progressFill = document.getElementById('progressFill');
+      const resetBtn = document.getElementById('resetButton');
+      const currentDateEl = document.getElementById('currentDate');
+      const quoteEl = document.getElementById('dailyQuote');
+
+      // Map category to container
+      const containerMap = {
+        physical: physicalContainer,
+        mental: mentalContainer,
+        school: schoolContainer,
+        chores: choresContainer,
+        other: otherContainer
+      };
+
+      // Generate unique IDs for checkboxes: category-index
+      const getCheckboxId = (category, index) => `${category}-${index}`;
+      
+      // Total habits count
+      let totalHabitsCount = 0;
+      HABIT_STRUCTURE.forEach(cat => { totalHabitsCount += cat.habits.length; });
+      totalHabitsSpan.textContent = totalHabitsCount;
+
+      // --- Local storage key based on today's date (YYYY-MM-DD) ---
+      function getTodayDateString() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function getStorageKey() {
+        return `habitTracker_${getTodayDateString()}`;
+      }
+
+      // Display current date nicely
+      function updateDateDisplay() {
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+        currentDateEl.textContent = today.toLocaleDateString(undefined, options);
+      }
+
+      // --- Load state from localStorage for today ---
+      function loadTodayState() {
+        const key = getStorageKey();
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          try {
+            return JSON.parse(saved);
+          } catch (e) {
+            return {};
+          }
+        }
+        return {}; // empty object -> all unchecked
+      }
+
+      // --- Save state to localStorage ---
+      function saveTodayState(stateObject) {
+        const key = getStorageKey();
+        localStorage.setItem(key, JSON.stringify(stateObject));
+      }
+
+      // --- Build entire UI dynamically ---
+      function renderAllHabits() {
+        // Clear containers
+        Object.values(containerMap).forEach(container => {
+          if (container) container.innerHTML = '';
+        });
+
+        const todayState = loadTodayState();
+
+        HABIT_STRUCTURE.forEach(categoryGroup => {
+          const { category, habits } = categoryGroup;
+          const container = containerMap[category];
+          if (!container) return;
+
+          habits.forEach((habitText, index) => {
+            const habitId = getCheckboxId(category, index);
+            const isChecked = todayState[habitId] === true;
+
+            // Create habit item wrapper
+            const habitItemDiv = document.createElement('div');
+            habitItemDiv.className = 'habit-item';
+
+            // Label contains checkbox + text
+            const label = document.createElement('label');
+            label.className = 'habit-label';
+            label.setAttribute('for', habitId);
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = habitId;
+            checkbox.checked = isChecked;
+            checkbox.setAttribute('data-category', category);
+            checkbox.setAttribute('data-index', index);
+
+            // Text span
+            const textSpan = document.createElement('span');
+            textSpan.className = 'habit-text';
+            textSpan.textContent = habitText;
+
+            label.appendChild(checkbox);
+            label.appendChild(textSpan);
+            habitItemDiv.appendChild(label);
+            container.appendChild(habitItemDiv);
+          });
+        });
+
+        // Attach event listeners after rendering
+        attachCheckboxListeners();
+        updateProgress();
+      }
+
+      // --- Attach change listeners to all checkboxes ---
+      function attachCheckboxListeners() {
+        const allCheckboxes = document.querySelectorAll('input[type="checkbox"][data-category]');
+        allCheckboxes.forEach(cb => {
+          // Remove old listener to avoid duplicates (safe approach)
+          cb.removeEventListener('change', checkboxChangeHandler);
+          cb.addEventListener('change', checkboxChangeHandler);
+        });
+      }
+
+      // --- Handler for checkbox change ---
+      function checkboxChangeHandler(e) {
+        const checkbox = e.target;
+        const habitId = checkbox.id;
+        const todayState = loadTodayState();
+        
+        if (checkbox.checked) {
+          todayState[habitId] = true;
+        } else {
+          delete todayState[habitId]; // remove key if unchecked (cleaner)
+        }
+        
+        saveTodayState(todayState);
+        updateProgress();
+        // Optional: tiny animation or quote update can happen here
+        updateMotivationalQuote();
+      }
+
+      // --- Update progress bar and count ---
+      function updateProgress() {
+        const todayState = loadTodayState();
+        // Count how many habits are checked (true values)
+        const checkedCount = Object.keys(todayState).filter(key => todayState[key] === true).length;
+        const total = totalHabitsCount;
+        
+        progressCountSpan.textContent = checkedCount;
+        const percent = total === 0 ? 0 : Math.round((checkedCount / total) * 100);
+        progressFill.style.width = `${percent}%`;
+
+        // Also update quote based on progress
+        updateMotivationalQuote(checkedCount, total);
+      }
+
+      // --- Motivational quote based on completion ---
+      function updateMotivationalQuote(checked = null, total = null) {
+        if (checked === null || total === null) {
+          const state = loadTodayState();
+          checked = Object.keys(state).filter(k => state[k] === true).length;
+          total = totalHabitsCount;
+        }
+        
+        let quote = "";
+        if (checked === total && total > 0) {
+          quote = "🌟 all habits complete — you're shining today.";
+        } else if (checked > total * 0.7) {
+          quote = "✨ almost there, keep that momentum.";
+        } else if (checked > total * 0.4) {
+          quote = "🌤️ halfway point — steady progress.";
+        } else if (checked > 0) {
+          quote = "🌱 small steps build strong rhythms.";
+        } else {
+          quote = "🌿 start with one habit. gently.";
+        }
+        quoteEl.textContent = quote;
+      }
+
+      // --- Reset all habits for today (uncheck all) ---
+      function resetTodayHabits() {
+        const key = getStorageKey();
+        // Clear today's entry completely
+        localStorage.removeItem(key);
+        
+        // Re-render UI to reflect unchecked state
+        renderAllHabits();
+        // Progress already updated inside renderAllHabits
+      }
+
+      // --- Check if date changed and possibly clean old keys (optional) ---
+      function handleDateChange() {
+        // We simply re-render on page load/visibility; also we can remove old dates if needed.
+        // For cleanliness, we keep only today's key? Not mandatory but good practice.
+        cleanupOldStorageKeys();
+        renderAllHabits();
+        updateDateDisplay();
+      }
+
+      // Remove habit tracker keys that are not today (to avoid localStorage clutter)
+      function cleanupOldStorageKeys() {
+        const todayKey = getStorageKey();
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('habitTracker_') && key !== todayKey) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+
+      // --- Reset button event ---
+      resetBtn.addEventListener('click', () => {
+        resetTodayHabits();
+      });
+
+      // --- Listen for storage changes from other tabs (sync) ---
+      window.addEventListener('storage', (event) => {
+        if (event.key && event.key.startsWith('habitTracker_')) {
+          // If storage changes in another tab, re-render to stay synced
+          const todayKey = getStorageKey();
+          if (event.key === todayKey) {
+            renderAllHabits();
+          } else {
+            // If an old key removed, maybe just update UI if needed.
+            // But if date changed, full re-render will handle.
+            // For safety, re-render if any habit key changes.
+            renderAllHabits();
+          }
+        }
+      });
+
+      // On page visibility change (user returns to tab), re-check date and refresh UI
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          // Re-check date in case day changed while tab was background
+          updateDateDisplay();
+          renderAllHabits();
+          // cleanup old keys again
+          cleanupOldStorageKeys();
+        }
+      });
+
+      // Initial setup
+      updateDateDisplay();
+      cleanupOldStorageKeys(); // clean on load
+      renderAllHabits();
+
+      // Also set initial quote
+      updateMotivationalQuote();
+    })();
+  </script>
+</body>
+</html>
