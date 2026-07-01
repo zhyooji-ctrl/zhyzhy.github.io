@@ -13,8 +13,7 @@
             --text-muted: #999;
             --accent: #000;
             --green: #2e7d32;
-            --green-light: #e8f5e9;
-            --red: #c62828;
+            --blue: #1565c0;
             --radius: 6px;
         }
 
@@ -38,9 +37,13 @@
             padding: 32px 20px 80px;
         }
 
-        /* ── Header ──────────────────── */
         .header {
-            margin-bottom: 40px;
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
         }
         .header h1 {
             font-size: 1.4rem;
@@ -53,7 +56,34 @@
             color: var(--text-muted);
         }
 
-        /* ── Stats Row ──────────────── */
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .mode-toggle button {
+            padding: 8px 16px;
+            border: none;
+            background: var(--surface);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .mode-toggle button:first-child {
+            border-right: 1px solid var(--border);
+        }
+        .mode-toggle button.active-mode {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -80,7 +110,6 @@
             margin-top: 2px;
         }
 
-        /* ── Pie ────────────────────── */
         .pie-section {
             text-align: center;
             margin-bottom: 36px;
@@ -96,7 +125,6 @@
             letter-spacing: 0.3px;
         }
 
-        /* ── Week Nav ───────────────── */
         .week-nav {
             display: flex;
             gap: 0;
@@ -104,6 +132,7 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             overflow: hidden;
+            flex-wrap: wrap;
         }
         .week-nav button {
             flex: 1;
@@ -117,6 +146,7 @@
             letter-spacing: 0.2px;
             transition: all 0.15s;
             border-right: 1px solid var(--border);
+            min-width: 40px;
         }
         .week-nav button:last-child {
             border-right: none;
@@ -134,7 +164,6 @@
             color: #fff;
         }
 
-        /* ── Day Content ────────────── */
         .day-content {
             display: none;
             animation: fadeIn 0.25s ease;
@@ -161,10 +190,27 @@
         .day-content .day-sub {
             font-size: 0.75rem;
             color: var(--text-muted);
-            margin-bottom: 20px;
+            margin-bottom: 8px;
+        }
+        .day-content .day-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        .badge-home {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .badge-gym {
+            background: #e3f2fd;
+            color: #1565c0;
         }
 
-        /* ── Exercise Row ───────────── */
         .ex-row {
             display: flex;
             align-items: center;
@@ -260,7 +306,6 @@
             border-bottom-color: var(--accent);
         }
 
-        /* ── Buttons ────────────────── */
         .btn {
             display: inline-block;
             padding: 10px 20px;
@@ -284,7 +329,6 @@
             border: 1px solid var(--border);
         }
 
-        /* ── Weight Log Tab ──────────── */
         .log-table {
             width: 100%;
             border-collapse: collapse;
@@ -322,13 +366,7 @@
             outline: none;
             border-color: #888;
         }
-        .pr-badge {
-            color: var(--green);
-            font-weight: 600;
-            font-size: 0.7rem;
-        }
 
-        /* ── Responsive ──────────────── */
         @media (max-width: 500px) {
             .container {
                 padding: 20px 14px 60px;
@@ -358,19 +396,26 @@
                 font-size: 0.6rem;
                 padding: 8px 2px;
             }
+            .mode-toggle button {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-
-        <!-- ═══════════ HEADER ═══════════ -->
         <div class="header">
-            <h1>recomp</h1>
-            <p class="meta">5'8" · 180 lbs · home + gym · pull-up focus</p>
+            <div>
+                <h1>recomp</h1>
+                <p class="meta">5'8" · 180 lbs · pull-up focus</p>
+            </div>
+            <div class="mode-toggle" id="modeToggle">
+                <button data-mode="home" class="active-mode">🏠 Home Gym</button>
+                <button data-mode="gym">🏋️ In-Gym</button>
+            </div>
         </div>
 
-        <!-- ═══════════ STATS ═══════════ -->
         <div class="stats">
             <div class="stat"><div class="value" id="sessionsCompleted">0</div><div class="label">Sessions</div></div>
             <div class="stat"><div class="value" id="pullUpMax">0</div><div class="label">Max Pull-Ups</div></div>
@@ -378,13 +423,11 @@
             <div class="stat"><div class="value" id="totalWeight">0</div><div class="label">Lbs Lifted</div></div>
         </div>
 
-        <!-- ═══════════ PIE ═══════════ -->
         <div class="pie-section">
             <canvas id="pieCanvas" width="100" height="100"></canvas>
             <div class="pie-label">weekly completion</div>
         </div>
 
-        <!-- ═══════════ WEEK NAV ═══════════ -->
         <div class="week-nav" id="weekNav">
             <button data-day="monday">Mon</button>
             <button data-day="tuesday">Tue</button>
@@ -392,81 +435,139 @@
             <button data-day="thursday">Thu</button>
             <button data-day="friday">Fri</button>
             <button data-day="weights">Log</button>
+            <button data-day="diet">Diet</button>
         </div>
 
-        <!-- ═══════════ DAY CONTENT ═══════════ -->
         <div id="dayContainer"></div>
-
     </div>
 
     <script>
         // ═══════════ DATA ═══════════
         const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-        const dayMeta = {
-            monday: { title: 'Monday', sub: 'Home — Pull-Up Negatives + Upper Push' },
-            tuesday: { title: 'Tuesday', sub: 'Gym — Lower Body Heavy' },
-            wednesday: { title: 'Wednesday', sub: 'Home — Band Pull-Ups + Shoulders/Arms' },
-            thursday: { title: 'Thursday', sub: 'Gym — Back & Glutes' },
-            friday: { title: 'Friday', sub: 'Home — Isometric Holds + Full Body Pump' },
+
+        // ── HOME GYM SPLIT ─────────────────
+        const homeMeta = {
+            monday: { title: 'Monday', sub: 'Chest + Triceps', mode: 'home' },
+            tuesday: { title: 'Tuesday', sub: 'Back + Biceps', mode: 'home' },
+            wednesday: { title: 'Wednesday', sub: 'Shoulders + Abs', mode: 'home' },
+            thursday: { title: 'Thursday', sub: 'Legs (Quad Focus)', mode: 'home' },
+            friday: { title: 'Friday', sub: 'Posterior Chain + Arms Finisher', mode: 'home' },
         };
 
-        const exercises = {
+        const homeExercises = {
             monday: [
-                { name: 'Negative Pull-Ups', sets: '4', reps: '3-4', vid: 'https://youtu.be/3YvfRx31xDE' },
-                { name: 'DB Bench Press', sets: '3', reps: '8-10', vid: 'https://youtu.be/VmBME2yGNiE' },
+                { name: 'DB Bench Press', sets: '4', reps: '8-10', vid: 'https://youtu.be/VmBME2yGNiE' },
+                { name: 'Incline DB Bench Press', sets: '3', reps: '10-12', vid: 'https://youtu.be/0G2_XV7slIg' },
+                { name: 'DB Floor Fly', sets: '3', reps: '12-15', vid: 'https://youtu.be/eozdVDA78K0' },
+                { name: 'Push-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/IODxDxX7oi4' },
                 { name: 'Dips', sets: '3', reps: 'max', vid: 'https://youtu.be/0326dy_-CAQ' },
-                { name: 'Single-Arm DB Row', sets: '3', reps: '10/arm', vid: 'https://youtu.be/pYpqU3q8o5E' },
+                { name: 'Overhead Tricep Extension', sets: '3', reps: '12', vid: 'https://youtu.be/nRiJVH03xRY' },
+                { name: 'Tricep Kickbacks', sets: '3', reps: '12/arm', vid: 'https://youtu.be/6SS2XscNFAg' },
+            ],
+            tuesday: [
+                { name: 'Negative Pull-Ups', sets: '4', reps: '3-4', vid: 'https://youtu.be/3YvfRx31xDE' },
+                { name: 'Single-Arm DB Row', sets: '4', reps: '10/arm', vid: 'https://youtu.be/pYpqU3q8o5E' },
+                { name: 'Band-Assisted Chin-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/_N1t2YUB_ws' },
+                { name: 'DB Pullover', sets: '3', reps: '12', vid: 'https://youtu.be/3KooZZfIUaQ' },
                 { name: 'Band Pull-Aparts', sets: '3', reps: '20', vid: 'https://youtu.be/f5vcer7nXf4' },
+                { name: 'Hammer Curls', sets: '3', reps: '12', vid: 'https://youtu.be/TwD7xJUmXJI' },
+                { name: 'Concentration Curls', sets: '3', reps: '12/arm', vid: 'https://youtu.be/Jvj2wV0vOYU' },
+            ],
+            wednesday: [
+                { name: 'Seated DB Shoulder Press', sets: '4', reps: '8-10', vid: 'https://youtu.be/qEwKUP_4r2Q' },
+                { name: 'Lateral Raises', sets: '4', reps: '15', vid: 'https://youtu.be/3VcKaXp_zJc' },
+                { name: 'Bent-Over Lateral Raises', sets: '3', reps: '15', vid: 'https://youtu.be/ttvfGEP9fDE' },
+                { name: 'DB Front Raises', sets: '3', reps: '12/arm', vid: 'https://youtu.be/-t7fuZ0pR9A' },
+                { name: 'Band Face Pulls', sets: '3', reps: '15', vid: 'https://youtu.be/0Po47vvj8g4' },
+                { name: 'Hanging Knee Raises', sets: '3', reps: '10-15', vid: 'https://youtu.be/rdgkxJ1qgTk' },
+                { name: 'Plank', sets: '3', reps: '45-60s', vid: 'https://youtu.be/pSHjTRCQxIw' },
+                { name: 'Dead Hang', sets: '3', reps: 'max', vid: 'https://youtu.be/0NfqHDdx_3U' },
+            ],
+            thursday: [
+                { name: 'Goblet Squat', sets: '4', reps: '8-10', vid: 'https://youtu.be/meE3sjR3mtY' },
+                { name: 'Bulgarian Split Squats', sets: '4', reps: '10/leg', vid: 'https://youtu.be/2C-uNgKwPLE' },
+                { name: 'DB Front Squat', sets: '3', reps: '12', vid: 'https://youtu.be/vrLJdVPQpOM' },
+                { name: 'Reverse Lunges', sets: '3', reps: '10/leg', vid: 'https://youtu.be/R9Gq4YBf8cI' },
+                { name: 'Calf Raises', sets: '4', reps: '15-20', vid: 'https://youtu.be/gwLv6x3b5oA' },
+                { name: 'Wall Sit', sets: '3', reps: 'max', vid: 'https://youtu.be/y-wV4VenR1w' },
+            ],
+            friday: [
+                { name: 'Romanian Deadlift', sets: '4', reps: '10-12', vid: 'https://youtu.be/JCXUYuzNgTs' },
+                { name: 'Hip Thrust', sets: '4', reps: '12-15', vid: 'https://youtu.be/LM8XOFYXVpY' },
+                { name: 'Single-Leg Romanian Deadlift', sets: '3', reps: '10/leg', vid: 'https://youtu.be/tMxtXZAVcX0' },
+                { name: 'Glute Bridges', sets: '3', reps: '15-20', vid: 'https://youtu.be/OUgsJ8-Vi0E' },
+                { name: 'Hammer Curls', sets: '3', reps: '12', vid: 'https://youtu.be/TwD7xJUmXJI' },
+                { name: 'Overhead Tricep Extension', sets: '3', reps: '12', vid: 'https://youtu.be/nRiJVH03xRY' },
+                { name: 'Dips', sets: '3', reps: 'max', vid: 'https://youtu.be/0326dy_-CAQ' },
+                { name: 'Farmer Carries', sets: '3', reps: '40 steps', vid: 'https://youtu.be/Fk_S4EA7F8E' },
+            ],
+        };
+
+        // ── IN-GYM SPLIT ───────────────────
+        const gymMeta = {
+            monday: { title: 'Monday', sub: 'Upper Push (Chest/Shoulders/Triceps)', mode: 'gym' },
+            tuesday: { title: 'Tuesday', sub: 'Lower Body Heavy', mode: 'gym' },
+            wednesday: { title: 'Wednesday', sub: 'Upper Pull (Back/Biceps)', mode: 'gym' },
+            thursday: { title: 'Thursday', sub: 'Lower Body + Glutes', mode: 'gym' },
+            friday: { title: 'Friday', sub: 'Full Body Pump + Arms', mode: 'gym' },
+        };
+
+        const gymExercises = {
+            monday: [
+                { name: 'Barbell Bench Press', sets: '4', reps: '8-10', vid: 'https://youtu.be/SCVCLChOEQw' },
+                { name: 'Incline DB Press', sets: '3', reps: '10-12', vid: 'https://youtu.be/0G2_XV7slIg' },
+                { name: 'Cable Flys', sets: '3', reps: '12-15', vid: 'https://youtu.be/Iwe6AmxVf7o' },
+                { name: 'Seated DB Shoulder Press', sets: '3', reps: '8-10', vid: 'https://youtu.be/qEwKUP_4r2Q' },
+                { name: 'Lateral Raises', sets: '3', reps: '15', vid: 'https://youtu.be/3VcKaXp_zJc' },
+                { name: 'Tricep Pushdowns', sets: '3', reps: '12', vid: 'https://youtu.be/2-LAMcpzODU' },
+                { name: 'Overhead Cable Tricep Extension', sets: '3', reps: '12', vid: 'https://youtu.be/vB5tORTGwsE' },
             ],
             tuesday: [
                 { name: 'Barbell Back Squat', sets: '4', reps: '8-10', vid: 'https://youtu.be/1oed-UmAxFs' },
                 { name: 'Romanian Deadlift', sets: '3', reps: '8-10', vid: 'https://youtu.be/JCXUYuzNgTs' },
-                { name: 'Hip Thrust', sets: '3', reps: '12-15', vid: 'https://youtu.be/LM8XOFYXVpY' },
-                { name: 'Leg Extension', sets: '3', reps: '12-15', vid: 'https://youtu.be/Y0tUTZPRnas' },
-                { name: 'Hamstring Curl', sets: '3', reps: '12-15', vid: 'https://youtu.be/F4883k9UIzg' },
+                { name: 'Leg Press', sets: '3', reps: '10-12', vid: 'https://youtu.be/IZxyjW7MPJQ' },
+                { name: 'Walking Lunges', sets: '3', reps: '12/leg', vid: 'https://youtu.be/R9Gq4YBf8cI' },
+                { name: 'Leg Extensions', sets: '3', reps: '12-15', vid: 'https://youtu.be/Y0tUTZPRnas' },
                 { name: 'Calf Raises', sets: '4', reps: '15-20', vid: 'https://youtu.be/gwLv6x3b5oA' },
             ],
             wednesday: [
-                { name: 'Band-Assisted Pull-Ups', sets: '4', reps: 'max', vid: 'https://youtu.be/vGLtMn76hMM' },
-                { name: 'Seated DB Shoulder Press', sets: '3', reps: '8-10', vid: 'https://youtu.be/qEwKUP_4r2Q' },
-                { name: 'Lateral Raises', sets: '3', reps: '15', vid: 'https://youtu.be/3VcKaXp_zJc' },
-                { name: 'Band-Assisted Chin-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/_N1t2YUB_ws' },
-                { name: 'Hammer Curls', sets: '3', reps: '12', vid: 'https://youtu.be/TwD7xJUmXJI' },
-                { name: 'Overhead Tricep Extension', sets: '3', reps: '12', vid: 'https://youtu.be/nRiJVH03xRY' },
-            ],
-            thursday: [
                 { name: 'Lat Pulldowns', sets: '4', reps: '10-12', vid: 'https://youtu.be/CAwf7n2mRIc' },
-                { name: 'Seated Cable Rows', sets: '3', reps: '10-12', vid: 'https://youtu.be/GZbfZ033f74' },
+                { name: 'Seated Cable Rows', sets: '4', reps: '10-12', vid: 'https://youtu.be/GZbfZ033f74' },
+                { name: 'Assisted Pull-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/vGLtMn76hMM' },
                 { name: 'Face Pulls', sets: '3', reps: '15', vid: 'https://youtu.be/0Po47vvj8g4' },
                 { name: 'Straight-Arm Cable Pulldowns', sets: '3', reps: '12-15', vid: 'https://youtu.be/5h7jCPfZ7oU' },
-                { name: 'Hip Thrust', sets: '3', reps: '15', vid: 'https://youtu.be/LM8XOFYXVpY' },
-                { name: 'Dead Hang', sets: '3', reps: 'max hold', vid: 'https://youtu.be/0NfqHDdx_3U' },
+                { name: 'Barbell Curls', sets: '3', reps: '12', vid: 'https://youtu.be/kwG2ipFRgfo' },
+                { name: 'Hammer Curls', sets: '3', reps: '12', vid: 'https://youtu.be/TwD7xJUmXJI' },
+            ],
+            thursday: [
+                { name: 'Barbell Back Squat', sets: '4', reps: '8-10', vid: 'https://youtu.be/1oed-UmAxFs' },
+                { name: 'Hip Thrust', sets: '4', reps: '12-15', vid: 'https://youtu.be/LM8XOFYXVpY' },
+                { name: 'Bulgarian Split Squats', sets: '3', reps: '10/leg', vid: 'https://youtu.be/2C-uNgKwPLE' },
+                { name: 'Hamstring Curls', sets: '3', reps: '12-15', vid: 'https://youtu.be/F4883k9UIzg' },
+                { name: 'Glute Kickbacks', sets: '3', reps: '15/leg', vid: 'https://youtu.be/wDOv2D03v4E' },
+                { name: 'Hanging Leg Raises', sets: '3', reps: '12-15', vid: 'https://youtu.be/rdgkxJ1qgTk' },
             ],
             friday: [
-                { name: 'Isometric Pull-Up Holds', sets: '6', reps: '10-20s', vid: 'https://youtu.be/3YvfRx31xDE' },
+                { name: 'Pull-Ups', sets: '4', reps: 'max', vid: 'https://youtu.be/eGo4IYlbE5g' },
+                { name: 'DB Bench Press', sets: '3', reps: '10-12', vid: 'https://youtu.be/VmBME2yGNiE' },
                 { name: 'Goblet Squat', sets: '3', reps: '15', vid: 'https://youtu.be/meE3sjR3mtY' },
-                { name: 'Push-Ups', sets: '3', reps: 'max', vid: 'https://youtu.be/IODxDxX7oi4' },
-                { name: 'Bulgarian Split Squats', sets: '2', reps: '12/leg', vid: 'https://youtu.be/2C-uNgKwPLE' },
                 { name: 'Lateral Raises', sets: '3', reps: '15', vid: 'https://youtu.be/3VcKaXp_zJc' },
-                { name: 'Band Pull-Aparts', sets: '3', reps: '20', vid: 'https://youtu.be/f5vcer7nXf4' },
+                { name: 'Face Pulls', sets: '3', reps: '15', vid: 'https://youtu.be/0Po47vvj8g4' },
+                { name: 'Barbell Curls + Tricep Pushdowns', sets: '3', reps: '12 each', vid: 'https://youtu.be/kwG2ipFRgfo' },
+                { name: 'Dead Hang', sets: '3', reps: 'max', vid: 'https://youtu.be/0NfqHDdx_3U' },
             ],
         };
-
-        const weightExercises = [
-            'DB Bench Press', 'Pull-Ups', 'Barbell Back Squat', 'Romanian Deadlift', 'Hip Thrust',
-            'Seated DB Shoulder Press', 'Lat Pulldowns', 'Seated Cable Rows', 'Goblet Squat', 'Dips',
-            'Single-Arm DB Row', 'Hammer Curls', 'Overhead Tricep Extension',
-        ];
 
         // ═══════════ STATE ═══════════
         function loadState() {
             try {
-                const s = localStorage.getItem('recompTracker');
+                const s = localStorage.getItem('recompTrackerV4');
                 if (s) return JSON.parse(s);
             } catch (e) {}
             return {
-                completedDays: {},
-                exData: {},
+                mode: 'home', // 'home' or 'gym'
+                completedDays: {}, // { 'home-monday': true, 'gym-tuesday': true }
+                exData: {}, // { 'home-monday-0': { w, r, n, done } }
                 weightLog: {},
                 pullUpMax: 0,
                 pullUpHistory: [],
@@ -474,9 +575,7 @@
             };
         }
 
-        function saveState() {
-            try { localStorage.setItem('recompTracker', JSON.stringify(state)); } catch (e) {}
-        }
+        function saveState() { try { localStorage.setItem('recompTrackerV4', JSON.stringify(state)); } catch (e) {} }
 
         function getWeekStr() {
             const d = new Date();
@@ -492,25 +591,60 @@
             saveState();
         }
 
-        // ═══════════ RENDER ────────────
+        function getDayKey(day) {
+            return state.mode + '-' + day;
+        }
+
         function getExData(key) {
             return state.exData[key] || { w: '', r: '', n: '', done: false };
         }
 
+        function currentMeta() { return state.mode === 'home' ? homeMeta : gymMeta; }
+
+        function currentExercises() { return state.mode === 'home' ? homeExercises : gymExercises; }
+
+        const weightExercises = [
+            'DB Bench Press', 'Barbell Bench Press', 'Pull-Ups', 'Barbell Back Squat', 'Romanian Deadlift',
+            'Hip Thrust', 'Seated DB Shoulder Press', 'Lat Pulldowns', 'Seated Cable Rows', 'Goblet Squat',
+            'Dips', 'Single-Arm DB Row', 'Hammer Curls', 'Overhead Tricep Extension', 'Leg Press',
+        ];
+
+        // ═══════════ MODE TOGGLE ═══════════
+        function setMode(mode) {
+            state.mode = mode;
+            saveState();
+            document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active-mode'));
+            document.querySelector(`.mode-toggle button[data-mode="${mode}"]`).classList.add('active-mode');
+            updateAll();
+            navigateTo('monday');
+        }
+
+        document.getElementById('modeToggle').addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON' && e.target.dataset.mode) {
+                setMode(e.target.dataset.mode);
+            }
+        });
+
+        // ═══════════ RENDER ═══════════
         function renderDay(day) {
             const container = document.getElementById('dayContainer');
-            if (day === 'weights') {
-                renderWeightLogTab(container);
-                return;
-            }
-            const meta = dayMeta[day];
+            if (day === 'weights') { renderWeightLogTab(container); return; }
+            if (day === 'diet') { renderDietTab(container); return; }
+
+            const meta = currentMeta()[day];
+            const exList = currentExercises()[day];
+            const modeLabel = state.mode === 'home' ? 'Home Gym' : 'In-Gym';
+            const badgeClass = state.mode === 'home' ? 'badge-home' : 'badge-gym';
+            const dayKey = getDayKey(day);
+
             let html = `
             <div class="day-content active" id="day-${day}">
               <h2>${meta.title}</h2>
               <p class="day-sub">${meta.sub}</p>
+              <span class="day-badge ${badgeClass}">${modeLabel}</span>
               <div class="ex-list" id="list-${day}">`;
-            exercises[day].forEach((ex, i) => {
-                const key = day + '-' + i;
+            exList.forEach((ex, i) => {
+                const key = dayKey + '-' + i;
                 const d = getExData(key);
                 html += `
             <div class="ex-row ${d.done ? 'done' : ''}" id="row-${key}">
@@ -527,12 +661,12 @@
               <a href="${ex.vid}" target="_blank" rel="noopener" class="ex-video">form →</a>
             </div>`;
             });
+            const isComplete = state.completedDays[dayKey];
             html += `</div>
-            <button class="btn" id="btn-${day}">${state.completedDays[day] ? '✓ Completed' : 'Mark Complete'}</button>
+            <button class="btn" id="btn-${day}">${isComplete ? '✓ Completed' : 'Mark Complete'}</button>
           </div>`;
             container.innerHTML = html;
 
-            // Attach listeners
             const list = document.getElementById('list-' + day);
             list.querySelectorAll('.ex-check').forEach(cb => {
                 cb.addEventListener('click', function() { toggleEx(this.dataset.key); });
@@ -555,8 +689,6 @@
                 <tbody id="wl-body">`;
             weightExercises.forEach(ex => {
                 const log = state.weightLog[ex] || { bw: 0, br: 0, tw: '', tr: '', n: '' };
-                const isPR = log.tw && log.tr && (parseFloat(log.tw) > log.bw || (parseFloat(log.tw) == log
-                    .bw && parseFloat(log.tr) > log.br));
                 html += `<tr>
               <td>${ex}</td>
               <td>${log.bw || '—'}</td>
@@ -586,12 +718,10 @@
           </div>`;
             container.innerHTML = html;
 
-            // Weight log inputs
             document.querySelectorAll('.wl-tw').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ex = this.dataset.ex;
-                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '',
-                        n: '' };
+                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '', n: '' };
                     state.weightLog[ex].tw = this.value;
                     saveState();
                 });
@@ -599,8 +729,7 @@
             document.querySelectorAll('.wl-tr').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ex = this.dataset.ex;
-                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '',
-                        n: '' };
+                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '', n: '' };
                     state.weightLog[ex].tr = this.value;
                     saveState();
                 });
@@ -608,8 +737,7 @@
             document.querySelectorAll('.wl-note').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ex = this.dataset.ex;
-                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '',
-                        n: '' };
+                    if (!state.weightLog[ex]) state.weightLog[ex] = { bw: 0, br: 0, tw: '', tr: '', n: '' };
                     state.weightLog[ex].n = this.value;
                     saveState();
                 });
@@ -617,6 +745,47 @@
             document.getElementById('btn-save-wl').addEventListener('click', saveWeightLog);
             document.getElementById('btn-pu-log').addEventListener('click', logPullUp);
             renderPullUpHistory();
+        }
+
+        function renderDietTab(container) {
+            const weightLbs = 180;
+            const weightKg = weightLbs / 2.205;
+            const heightCm = 172.7;
+            const age = 25;
+            const bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+            const tdee = Math.round(bmr * 1.55);
+            const targetCals = Math.round(tdee * 0.95);
+            const proteinG = Math.round(weightLbs * 1.0);
+            const fatG = Math.round(weightLbs * 0.4);
+            const proteinCals = proteinG * 4;
+            const fatCals = fatG * 9;
+            const carbCals = targetCals - proteinCals - fatCals;
+            const carbG = Math.round(carbCals / 4);
+            const fiberG = 30;
+
+            let html = `
+            <div class="day-content active" id="day-diet">
+              <h2>Daily Nutrition Targets</h2>
+              <p class="day-sub">For body recomposition at 5'8" · 180 lbs</p>
+              <div class="stats" style="margin-bottom:20px;">
+                <div class="stat"><div class="value">${targetCals}</div><div class="label">Calories</div></div>
+                <div class="stat"><div class="value">${proteinG}g</div><div class="label">Protein</div></div>
+                <div class="stat"><div class="value">${carbG}g</div><div class="label">Carbs</div></div>
+                <div class="stat"><div class="value">${fatG}g</div><div class="label">Fat</div></div>
+              </div>
+              <table class="log-table" style="margin-top:10px;">
+                <thead><tr><th>Nutrient</th><th>Target</th><th>Notes</th></tr></thead>
+                <tbody>
+                  <tr><td>Calories</td><td>~${targetCals} kcal</td><td>Slight deficit from maintenance (~${tdee})</td></tr>
+                  <tr><td>Protein</td><td>${proteinG}g</td><td>1g per lb body weight — prioritise this</td></tr>
+                  <tr><td>Carbohydrates</td><td>${carbG}g</td><td>Fill remaining calories; focus around workouts</td></tr>
+                  <tr><td>Fat</td><td>${fatG}g</td><td>~0.4g per lb; healthy sources</td></tr>
+                  <tr><td>Fiber</td><td>${fiberG}g+</td><td>Vegetables, whole grains, legumes</td></tr>
+                  <tr><td>Water</td><td>3–4 L</td><td>Stay hydrated; more on training days</td></tr>
+                </tbody>
+              </table>
+            </div>`;
+            container.innerHTML = html;
         }
 
         // ═══════════ ACTIONS ═══════════
@@ -642,14 +811,16 @@
         }
 
         function markDay(day) {
-            const allDone = exercises[day].every((_, i) => {
-                const d = state.exData[day + '-' + i];
+            const dayKey = getDayKey(day);
+            const exList = currentExercises()[day];
+            const allDone = exList.every((_, i) => {
+                const d = state.exData[dayKey + '-' + i];
                 return d && d.done;
             });
-            if (!allDone && !state.completedDays[day]) {
+            if (!allDone && !state.completedDays[dayKey]) {
                 if (!confirm('Not all exercises checked. Mark complete anyway?')) return;
             }
-            state.completedDays[day] = !state.completedDays[day];
+            state.completedDays[dayKey] = !state.completedDays[dayKey];
             saveState();
             updateAll();
             renderDay(day);
@@ -702,33 +873,28 @@
             if (state.pullUpHistory.length === 0) { el.innerHTML = '<p>No entries yet.</p>'; return; }
             let h = '<table class="log-table"><thead><tr><th>Date</th><th>Method</th><th>Sets×Reps</th><th>Note</th></tr></thead><tbody>';
             state.pullUpHistory.slice(0, 15).forEach(e => {
-                h +=
-                    `<tr><td>${e.date}</td><td>${e.method}</td><td>${e.sr}</td><td>${e.note || '—'}</td></tr>`;
+                h += `<tr><td>${e.date}</td><td>${e.method}</td><td>${e.sr}</td><td>${e.note || '—'}</td></tr>`;
             });
             h += '</tbody></table>';
             el.innerHTML = h;
         }
 
-        // ═══════════ UPDATE ALL ═══════════
         function updateAll() {
-            const completed = weekDays.filter(d => state.completedDays[d]).length;
+            const completed = weekDays.filter(d => state.completedDays[getDayKey(d)]).length;
             document.getElementById('sessionsCompleted').textContent = completed;
             document.getElementById('pullUpMax').textContent = state.pullUpMax || 0;
 
-            // Streak
             let streak = 0;
             const today = new Date().getDay();
             const map = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
             for (let i = today; i >= 1; i--) {
-                if (map[i] && state.completedDays[map[i]]) streak++;
+                if (map[i] && state.completedDays[getDayKey(map[i])]) streak++;
                 else if (map[i]) break;
             }
             document.getElementById('streakDays').textContent = streak;
 
-            // Total weight
             let tw = 0;
-            Object.values(state.exData).forEach(d => { if (d.w && d.r && d.done) tw += parseFloat(d.w) * parseFloat(d
-                    .r); });
+            Object.values(state.exData).forEach(d => { if (d.w && d.r && d.done) tw += parseFloat(d.w) * parseFloat(d.r); });
             document.getElementById('totalWeight').textContent = Math.round(tw).toLocaleString();
 
             drawPie();
@@ -740,11 +906,9 @@
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const total = 5;
-            const done = weekDays.filter(d => state.completedDays[d]).length;
+            const done = weekDays.filter(d => state.completedDays[getDayKey(d)]).length;
             ctx.clearRect(0, 0, 100, 100);
-            const cx = 50,
-                cy = 50,
-                r = 40;
+            const cx = 50, cy = 50, r = 40;
             ctx.beginPath();
             ctx.arc(cx, cy, r, 0, Math.PI * 2);
             ctx.fillStyle = '#eee';
@@ -771,7 +935,7 @@
             document.querySelectorAll('.week-nav button[data-day]').forEach(btn => {
                 const day = btn.dataset.day;
                 if (weekDays.includes(day)) {
-                    btn.classList.toggle('completed-nav', !!state.completedDays[day]);
+                    btn.classList.toggle('completed-nav', !!state.completedDays[getDayKey(day)]);
                 }
             });
         }
@@ -782,9 +946,7 @@
             if (btn) btn.classList.add('active');
         }
 
-        // ═══════════ NAVIGATION ═══════════
         let currentTab = 'monday';
-
         function navigateTo(day) {
             currentTab = day;
             updateNavActive(day);
@@ -798,8 +960,8 @@
             }
         });
 
-        // ═══════════ INIT ═══════════
         function init() {
+            document.querySelector(`.mode-toggle button[data-mode="${state.mode}"]`).classList.add('active-mode');
             navigateTo('monday');
             updateAll();
         }
