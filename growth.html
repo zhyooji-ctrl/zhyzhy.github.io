@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GROWTH · Prompt Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ============================================================
+           RESET & BASE – White & Green Theme
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+            color: #1e293b;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .app {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid #d1fae5;
+            box-shadow: 0 30px 60px -20px rgba(16, 185, 129, 0.15);
+            padding: 32px 36px 40px;
+            transition: all 0.3s ease;
+        }
+
+        /* ============================================================
+           DESIGN TOKENS
+           ============================================================ */
+        :root {
+            --green-50: #ecfdf5;
+            --green-100: #d1fae5;
+            --green-200: #a7f3d0;
+            --green-300: #6ee7b7;
+            --green-500: #10b981;
+            --green-700: #047857;
+            --gray-50: #f8fafc;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-800: #1e293b;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.02);
+            --transition: 0.2s ease-in-out;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            color: #0f172a;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .text-muted {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-left .badge {
+            background: var(--green-50);
+            color: var(--green-700);
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--green-200);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .weather-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            backdrop-filter: blur(4px);
+            padding: 6px 12px 6px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--green-200);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+        .weather-toggle select {
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .header-actions .btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--green-500);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            border: 1px solid var(--green-500);
+        }
+        .header-actions .btn:hover {
+            background: var(--green-700);
+            border-color: var(--green-700);
+            transform: scale(1.02);
+        }
+        .header-actions .btn-outline {
+            background: transparent;
+            border: 1px solid var(--green-200);
+            color: var(--green-700);
+        }
+        .header-actions .btn-outline:hover {
+            background: var(--green-50);
+            border-color: var(--green-500);
+        }
+        .header-actions .btn-export {
+            background: #0f172a;
+            border-color: #0f172a;
+        }
+        .header-actions .btn-export:hover {
+            background: #1e293b;
+            border-color: #1e293b;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT – 3 Columns
+           ============================================================ */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 220px 1fr 320px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* --- GOALS SIDEBAR --- */
+        .goals-sidebar {
+            background: white;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            border: 1px solid var(--green-200);
+            box-shadow: var(--shadow-card);
+            position: sticky;
+            top: 24px;
+        }
+        .goals-sidebar h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+        }
+        .goals-sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .goals-sidebar ul li {
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            background: var(--green-50);
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--green-500);
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f172a;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--green-100);
+        }
+        .goals-sidebar ul li .num {
+            font-weight: 700;
+            color: var(--green-500);
+            font-size: 16px;
+        }
+        .goals-sidebar .empty-goals {
+            color: var(--gray-600);
+            font-size: 14px;
+            font-style: italic;
+            padding: 12px 0;
+        }
+
+        /* --- CONTENT AREA --- */
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: white;
+            padding: 4px;
+            border-radius: 60px;
+            border: 1px solid var(--green-200);
+            width: fit-content;
+            margin-bottom: 8px;
+        }
+        .tab-btn {
+            padding: 8px 24px;
+            border-radius: 40px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        .tab-btn.active {
+            background: var(--green-50);
+            color: var(--green-700);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .tab-btn:hover:not(.active) {
+            color: #0f172a;
+        }
+
+        /* --- CHECKLIST (Practice) --- */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--green-200);
+            box-shadow: var(--shadow-card);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+        .card:hover {
+            border-color: var(--green-300);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .card-header .letter {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: white;
+            flex-shrink: 0;
+        }
+        .letter-g { background: #3b82f6; }
+        .letter-r { background: #10b981; }
+        .letter-o { background: #f59e0b; }
+        .letter-w { background: #8b5cf6; }
+        .letter-t { background: #ec4899; }
+
+        .card-header .info { flex: 1; }
+        .card-header .info .title { font-weight: 600; font-size: 16px; color: #0f172a; }
+        .card-header .info .sub { font-size: 14px; color: var(--gray-600); }
+
+        .status-toggle {
+            display: flex;
+            background: var(--green-50);
+            border-radius: 40px;
+            padding: 4px;
+            border: 1px solid var(--green-200);
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .status-toggle input { display: none; }
+        .status-toggle label {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--gray-600);
+            white-space: nowrap;
+        }
+        .status-toggle label:hover { color: #0f172a; }
+        .status-toggle input:checked+label {
+            background: white;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+        .status-toggle input[value="executed"]:checked+label {
+            background: var(--green-500);
+            color: white;
+        }
+        .status-toggle input[value="attempted"]:checked+label {
+            background: #f59e0b;
+            color: white;
+        }
+        .status-toggle input[value="not-discussed"]:checked+label {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .card-details {
+            padding: 0 20px 20px 20px;
+            display: none;
+            border-top: 1px solid var(--green-100);
+            background: var(--green-50);
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+        .card-details.open { display: block; }
+        .card-details .section { margin-top: 16px; }
+        .card-details .section-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .sub-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .sub-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .sub-checkboxes input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--green-500);
+        }
+
+        .prompt-group select {
+            padding: 8px 14px;
+            border-radius: 40px;
+            border: 1px solid var(--green-200);
+            background: white;
+            font-family: inherit;
+            font-size: 14px;
+            width: 100%;
+            max-width: 300px;
+            outline: none;
+            transition: var(--transition);
+            color: #0f172a;
+        }
+        .prompt-group select:focus {
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .prompt-bubble-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .prompt-bubble-wrapper .bubble-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--green-500);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            border: 1px solid var(--green-200);
+        }
+        .prompt-bubble-wrapper .bubble-content {
+            background: #e5edf5;
+            border-radius: 20px 20px 20px 4px;
+            padding: 14px 18px;
+            border: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+            color: #0f172a;
+            font-size: 14px;
+            line-height: 1.6;
+            font-family: 'Inter', sans-serif;
+            flex: 1;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .prompt-bubble-wrapper .bubble-content .prompt-text {
+            white-space: pre-wrap;
+            flex: 1;
+        }
+        .prompt-bubble-wrapper.auto .bubble-content {
+            background: #e5f0ea;
+        }
+
+        .next-prompt-btn {
+            background: var(--green-500);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+            border: 1px solid var(--green-200);
+        }
+        .next-prompt-btn:hover {
+            background: var(--green-700);
+            transform: scale(1.05);
+        }
+        .next-prompt-btn i { font-size: 14px; }
+
+        .notes-area textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--green-200);
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
+            transition: var(--transition);
+            background: white;
+        }
+        .notes-area textarea:focus {
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
+        }
+
+        /* --- PROMPT LIBRARY TAB --- */
+        .library-container {
+            display: none;
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--green-200);
+            padding: 20px;
+            min-height: 400px;
+        }
+        .library-container.active {
+            display: block;
+        }
+
+        .library-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .library-controls select {
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--green-200);
+            background: white;
+            font-family: inherit;
+            font-size: 14px;
+            color: #0f172a;
+            outline: none;
+            transition: var(--transition);
+            min-width: 160px;
+        }
+        .library-controls select:focus {
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .prompt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .prompt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--green-50);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--green-100);
+            gap: 12px;
+        }
+        .prompt-item .text {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #0f172a;
+        }
+        .prompt-item .badge-default {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--green-700);
+            background: var(--green-100);
+            padding: 2px 10px;
+            border-radius: 40px;
+            white-space: nowrap;
+        }
+        .prompt-item .badge-custom {
+            font-size: 10px;
+            font-weight: 600;
+            color: #8b5cf6;
+            background: #ede9fe;
+            padding: 2px 10px;
+            border-radius: 40px;
+            white-space: nowrap;
+        }
+        .prompt-item .delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 40px;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+        .prompt-item .delete-btn:hover {
+            background: #fee2e2;
+        }
+
+        .add-prompt-area {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            border-top: 1px solid var(--green-100);
+            padding-top: 16px;
+            flex-wrap: wrap;
+        }
+        .add-prompt-area input {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--green-200);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: var(--transition);
+            min-width: 200px;
+        }
+        .add-prompt-area input:focus {
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+        .add-prompt-area .btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--green-500);
+            color: white;
+            border: 1px solid var(--green-500);
+            white-space: nowrap;
+        }
+        .add-prompt-area .btn:hover {
+            background: var(--green-700);
+            border-color: var(--green-700);
+        }
+        .add-prompt-area .btn-outline {
+            background: transparent;
+            border: 1px solid var(--green-200);
+            color: var(--green-700);
+        }
+        .add-prompt-area .btn-outline:hover {
+            background: var(--green-50);
+            border-color: var(--green-500);
+        }
+
+        .library-empty {
+            color: var(--gray-600);
+            font-style: italic;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        /* --- METRICS PANEL --- */
+        .metrics-panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            border: 1px solid var(--green-200);
+            box-shadow: var(--shadow-card);
+            position: sticky;
+            top: 24px;
+        }
+        .metrics-panel h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .heart-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .heart-container svg {
+            width: 100%;
+            height: 100%;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15));
+        }
+        .heart-outline { fill: none; stroke: #e2e8f0; stroke-width: 3; }
+        .heart-fill {
+            fill: #10b981;
+            transition: clip-path 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            clip-path: inset(100% 0 0 0);
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.12); }
+            70% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+        .heart-container.beating svg { animation: heartbeat 1.2s ease-in-out infinite; }
+        .heart-container.beating { filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.25)); }
+        .heart-text {
+            position: absolute;
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            padding: 4px 14px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .stat-item {
+            background: var(--green-50);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            text-align: center;
+            border: 1px solid var(--green-100);
+        }
+        .stat-item .value { font-weight: 700; font-size: 22px; display: block; }
+        .stat-item .label { font-size: 12px; color: var(--gray-600); font-weight: 500; }
+        .stat-item.executed .value { color: var(--green-500); }
+        .stat-item.attempted .value { color: #f59e0b; }
+        .stat-item.not-discussed .value { color: var(--gray-400); }
+        .stat-item.rate .value { color: #0f172a; }
+
+        /* ============================================================
+           GOAL SETTING MODAL
+           ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 40px;
+            padding: 48px 56px;
+            max-width: 520px;
+            width: 100%;
+            border: 1px solid var(--green-200);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+        .modal h2 { font-size: 28px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .modal p { color: var(--gray-600); font-size: 16px; margin-bottom: 32px; }
+        .modal .goal-input-group { margin-bottom: 16px; text-align: left; }
+        .modal .goal-input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #0f172a;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .modal .goal-input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--green-200);
+            font-family: inherit;
+            font-size: 16px;
+            outline: none;
+            transition: var(--transition);
+            background: white;
+        }
+        .modal .goal-input-group input:focus {
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+        .modal .btn-primary {
+            width: 100%;
+            padding: 16px;
+            border-radius: 40px;
+            border: none;
+            background: var(--green-500);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            margin-top: 8px;
+        }
+        .modal .btn-primary:hover { background: var(--green-700); transform: scale(1.02); }
+        .modal .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 1200px) {
+            .dashboard { grid-template-columns: 1fr 300px; }
+            .goals-sidebar {
+                grid-column: 1 / -1;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 16px;
+                position: relative;
+                top: 0;
+                padding: 16px 24px;
+            }
+            .goals-sidebar h3 { margin-bottom: 0; flex: 1 1 100%; }
+            .goals-sidebar ul { display: flex; gap: 16px; flex-wrap: wrap; }
+            .goals-sidebar ul li { margin-bottom: 0; flex: 1; min-width: 150px; }
+            .prompt-bubble-wrapper .bubble-content { max-width: 100%; }
+            .library-controls { flex-direction: column; align-items: stretch; }
+            .library-controls select { width: 100%; }
+        }
+        @media (max-width: 768px) {
+            .app { padding: 20px; border-radius: 28px; }
+            .dashboard { grid-template-columns: 1fr; gap: 24px; }
+            .goals-sidebar ul { flex-direction: column; }
+            .goals-sidebar ul li { min-width: unset; }
+            .app-header { flex-direction: column; align-items: stretch; }
+            .header-actions { flex-wrap: wrap; }
+            .header-actions .btn { flex: 1; justify-content: center; }
+            .card-header { flex-wrap: wrap; gap: 12px; }
+            .status-toggle { margin-left: 60px; }
+            .sub-checkboxes { flex-direction: column; gap: 8px; }
+            .heart-container { width: 120px; height: 120px; }
+            .heart-text { font-size: 22px; }
+            .modal { padding: 32px 24px; }
+            .modal h2 { font-size: 24px; }
+            .prompt-bubble-wrapper { flex-wrap: wrap; }
+            .prompt-bubble-wrapper .bubble-content { max-width: 100%; }
+            .next-prompt-btn { width: 28px; height: 28px; }
+            .next-prompt-btn i { font-size: 12px; }
+            .tab-bar { width: 100%; }
+            .tab-btn { flex: 1; text-align: center; padding: 8px 12px; }
+            .add-prompt-area { flex-direction: column; }
+            .add-prompt-area input { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .status-toggle label { padding: 6px 10px; font-size: 11px; }
+            .app { padding: 16px; border-radius: 20px; }
+            .heart-container { width: 100px; height: 100px; }
+            .heart-text { font-size: 18px; padding: 2px 12px; }
+            .modal { padding: 24px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    GOAL SETTING MODAL
+    ============================================================ -->
+    <div class="modal-overlay" id="goalsModal">
+        <div class="modal">
+            <h2>🎯 Set Your 3 Goals</h2>
+            <p>What do you want to achieve in this session?</p>
+            <div class="goal-input-group">
+                <label for="goal1">Goal 1</label>
+                <input type="text" id="goal1" placeholder="e.g. Build trust with every customer" />
+            </div>
+            <div class="goal-input-group">
+                <label for="goal2">Goal 2</label>
+                <input type="text" id="goal2" placeholder="e.g. Offer at least one alternative" />
+            </div>
+            <div class="goal-input-group">
+                <label for="goal3">Goal 3</label>
+                <input type="text" id="goal3" placeholder="e.g. Leave a lasting positive impression" />
+            </div>
+            <button class="btn-primary" id="startGrowthBtn">🚀 Start GROWTH</button>
+        </div>
+    </div>
+
+    <div class="app" id="app">
+
+        <!-- ============================================================
+        HEADER
+        ============================================================ -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1>GROWTH</h1>
+                <span class="badge"><i class="fas fa-chart-line"></i> Coach</span>
+            </div>
+            <div class="header-actions">
+                <div class="weather-toggle">
+                    <i class="fas fa-sun" id="weatherIcon" style="color: var(--green-500);"></i>
+                    <select id="weatherSelect" aria-label="Weather condition">
+                        <option value="sunny">☀️ Sunny</option>
+                        <option value="rainy">🌧️ Rainy</option>
+                        <option value="cloudy">☁️ Cloudy</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline" id="restartBtn"><i class="fas fa-undo-alt"></i> Restart</button>
+                <button class="btn btn-export" id="exportBtn"><i class="fas fa-file-export"></i> Export CSV</button>
+            </div>
+        </header>
+
+        <!-- ============================================================
+        DASHBOARD
+        ============================================================ -->
+        <main class="dashboard">
+
+            <!-- GOALS SIDEBAR -->
+            <aside class="goals-sidebar" id="goalsSidebar">
+                <h3><i class="fas fa-bullseye" style="color: var(--green-500);"></i> Today's Goals</h3>
+                <ul id="goalsList">
+                    <li class="empty-goals">Set your 3 goals to begin.</li>
+                </ul>
+            </aside>
+
+            <!-- CONTENT AREA -->
+            <section class="content-area">
+
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="practice" onclick="switchTab('practice')">📝 Practice</button>
+                    <button class="tab-btn" data-tab="library" onclick="switchTab('library')">📚 Prompt Library</button>
+                </div>
+
+                <!-- PRACTICE TAB -->
+                <div id="practiceContainer">
+                    <div class="checklist" id="checklistContainer">
+                        <!-- Cards injected by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- LIBRARY TAB -->
+                <div id="libraryContainer" class="library-container">
+                    <!-- Library content injected by JavaScript -->
+                </div>
+
+            </section>
+
+            <!-- METRICS PANEL -->
+            <aside class="metrics-panel" id="metricsPanel">
+                <h3><i class="fas fa-heart" style="color: var(--green-500);"></i> Progress</h3>
+                <div class="heart-container" id="heartContainer">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path class="heart-outline" d="M50 88.5C50 88.5 10 60 10 35C10 20 22 8 35 8C45 8 50 16 50 16C50 16 55 8 65 8C78 8 90 20 90 35C90 60 50 88.5 50 88.5Z" />
+                        <path class="heart-fill" id="heartFill" d="M50 88.5C50 88.5 10 60 10 35C10 20 22 8 35 8C45 8 50 16 50 16C50 16 55 8 65 8C78 8 90 20 90 35C90 60 50 88.5 50 88.5Z" />
+                    </svg>
+                    <span class="heart-text" id="heartText">0%</span>
+                </div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item executed"><span class="value" id="executedCount">0</span><span class="label">Executed</span></div>
+                    <div class="stat-item attempted"><span class="value" id="attemptedCount">0</span><span class="label">Attempted</span></div>
+                    <div class="stat-item not-discussed"><span class="value" id="notDiscussedCount">0</span><span class="label">Not Discussed</span></div>
+                    <div class="stat-item rate"><span class="value" id="executionRate">0%</span><span class="label">Execution Rate</span></div>
+                </div>
+            </aside>
+
+        </main>
+    </div>
+
+    <script>
+        // ================================================================
+        // 1. DATA LAYER – GROWTH Steps & Expanded Default Prompts
+        // ================================================================
+
+        const STEPS = [{
+            id: 'g',
+            letter: 'G',
+            title: 'Greetings',
+            description: 'Auto‑selected based on time of day and weather.',
+            subCheckboxes: [
+                { id: 'greet', label: 'Did we greet the customer?' },
+                { id: 'authenticate', label: 'Did we authenticate the customer? (AAA)' },
+                { id: 'trust', label: 'Did we establish trust?' },
+                { id: 'account_details', label: 'Did we account for the details?' }
+            ],
+            isAutoGreeting: true
+        }, {
+            id: 'r',
+            letter: 'R',
+            title: 'Requests / Alternatives',
+            description: 'Handle withdrawals, wires, account closures.',
+            prompts: [{
+                condition: 'Withdrawal >= $5,000',
+                prompts: [
+                    '"MAY I KNOW THE REASON WHY YOU ARE WITHDRAWING THIS AMOUNT"',
+                    '"THERE ARE SAFER ALTERNATIVES LIKE USING YOUR CREDIT CARD, WRITING A CHEQUE, OR PURCHASING A DRAFT"',
+                    '"IF YOU MAY THERE IS ANOTHER OPTION TO TRANSFER THAT MONEY: YOU CAN CALL THE INTERAC DEPARTMENT TO INCREASE YOUR LIMITS FOR UP TO 10K TEMPORARILY FOR THE DAY"',
+                    '"ARE YOU AWARE OF THE DAILY ATM WITHDRAWAL LIMITS? WE CAN INCREASE THEM TEMPORARILY."'
+                ]
+            }, {
+                condition: 'Wire Transfer – Outside Canada',
+                prompts: [
+                    '"IF THIS A TRANSFER TO PERSONAL ACCOUNT I WOULD SUGGEST USING THE GLOBAL TRANSFER PORTAL BECAUSE IT IS FREE AND CONVENIENT. YOU WONT HAVE TO PAY 50 DOLLARS"',
+                    '"YOU CAN ALSO TAKE ADVANTAGE OF OTHER APPS LIKE REMITLY"',
+                    '"PLEASE DOUBLE-CHECK THE BENEFICIARY BANK DETAILS TO AVOID ANY DELAYS."'
+                ]
+            }, {
+                condition: 'Wire Transfer – Within Canada (different institution)',
+                prompts: [
+                    '"TO MAKE THIS EASIER AND PUT YOUR MIND IN EASE I WOULD SUGGEST PURCHASING A DRAFT OR WRITE A CHEQUE INSTEAD AND DEPOSIT THIS TO THE NEAREST BRANCH WHERE THE RECIPIENT IS BANKING WITH"'
+                ]
+            }, {
+                condition: 'Wire Transfer – TD to TD',
+                prompts: [
+                    '"TO AVOID THE FEES ALTOGETHER I WOULD OPT FOR TRANSFERING INTERNALLY. IF YOU CAN PROVIDE ME THE ACCOUNT NUMBER I WILL DO IT PROMPTLY"'
+                ]
+            }, {
+                condition: 'Closing Account',
+                prompts: [
+                    '"MAY I KNOW THE REASON WHY YOU ARE CLOSING THE ACCOUNT"',
+                    '"IS THERE ANYWAY WE CAN MAKE YOU STAY"',
+                    '"WE HAVE SOME EXCLUSIVE OFFERS FOR LONG-STANDING CLIENTS. CAN I SHARE THEM WITH YOU?"'
+                ]
+            }, {
+                condition: 'Stop Payment Request',
+                prompts: [
+                    '"I CAN PLACE A STOP PAYMENT ON THAT CHEQUE. PLEASE CONFIRM THE CHEQUE NUMBER AND AMOUNT."',
+                    '"THERE IS A FEE FOR STOP PAYMENTS. I CAN EXPLAIN THE PROCESS AND THE CHARGES."'
+                ]
+            }],
+            subCheckboxes: []
+        }, {
+            id: 'o',
+            letter: 'O',
+            title: 'Opportunities & Advice',
+            description: 'Borrowing, account upgrades, fee savings.',
+            prompts: [{
+                condition: 'Borrowing Opportunity (Pre‑approved)',
+                prompts: [
+                    '"YOU HAVE PRE-APPROVED CREDIT CARD, NO CREDIT CHEQUES, YOU CAN EITHER INCREASE YOUR CREDIT CARD LIMIT OR APPLY FOR NEW CREDIT CARD."',
+                    '"I SUGGEST APPLYING A CREDIT CARD FOR A SMALLER AMOUNT TO SAFEGUARD THE CREDIT CARD WITH A BIGGER BALANCE IN THAT WAY YOU CAN SAVE YOURSELF FROM FRAUD. YOU WILL BE EXPOSED TO LOWER RISKS"',
+                    '"PRE-APPROVED OFFERS ARE VALID FOR A LIMITED TIME. I CAN HELP YOU ACTIVATE IT TODAY."'
+                ]
+            }, {
+                condition: 'General Borrowing',
+                prompts: [
+                    '"WHAT ARE YOUR NEEDS AT THE MOMENT? IF YOU NEED BORROWING SERVICES THERES A PRE-APPROVED OFFER FOR YOU. YOU CAN LEVERAGE THE LINE OF CREDIT FOR EMERGENCY, RENOVATION, OR FOR MAKING A BIG PURCHASE. COMPARES TO USING A CREDIT CARD - THE INTEREST RATE IS 20%+ BUT A LOC PRIME+INTEREST RATE GIVEN TO YOU BY TD WILL BE LESS. WANT TO KNOW MORE?"',
+                    '"NEED TO MAKE A LOAN THERES A PRE-APPROVED OFFER FOR YOU. WE CAN HAVE AN ADVISOR ASSIST YOU MORE ABOUT THE DETAILS"',
+                    '"WE ALSO HAVE FLEXIBLE REPAYMENT OPTIONS FOR PERSONAL LOANS UP TO $50,000."'
+                ]
+            }, {
+                condition: 'Account Type / Fees',
+                prompts: [
+                    '"I BELIEVE YOU ARE MISSING OUT ON AN OPPORTUNITY I SEE YOU HAVE A HEALTHY AND CONSISTENT BALANCE YOU CAN TAKE ADVANTAGE OF USING THIS ACCOUNT TYPE _______ ALONG WITH THAT THERE ARE BENEFITS YOU MIGHT NOT BE AWARE OF. THEY ARE: _____"',
+                    '"TO TAKE ADVANTAGE OF YOUR ACCOUNT BENEFITS TO THE FULLEST YOU CAN DO THIS ___________"',
+                    '"SINCE YOU MAINTAIN A MINIMUM BALANCE, YOU QUALIFY FOR A FEE WAIVER ON OUR PREMIUM ACCOUNT."'
+                ]
+            }, {
+                condition: 'NSF / Overdraft',
+                prompts: [
+                    '"I REVIEWED YOUR ACCOUNT AND SEE THAT YOU HAVE BEEN DEBITED BY NSF FEES I SUGGEST APPLYING FOR AN ODP FOR ANY RAINY DAY FUNDS."',
+                    '"YOU ARE NOT USING THE ODP OFTEN DO YOU WANT ME TO CHANGE THE PLAN TO PODP"',
+                    '"YOU OFTEN GO TO ODP CAN I CHANGE YOUR PLAN MODP SO YOU CAN SAVE YOURSELF FROM EXTRA FEES"',
+                    '"WE CAN SET UP LOW-BALANCE ALERTS SO YOU NEVER GET SURPRISED BY NSF FEES AGAIN."'
+                ]
+            }, {
+                condition: 'Credit Card Upgrade',
+                prompts: [
+                    '"I SEE YOU HAVE A REGULAR CREDIT CARD AND AS YOU MENTIONED YOU TRAVEL OFTEN WHY DONT WE SWEETEN THE DEAL AND UPGRADE YOUR PLAN"',
+                    '"I KNOW CREDIT CARD FEES ARE DAUNTING BUT FROM WHAT IM SEEING IN YOUR ACTIVITY YOU CAN TAKE ADVANTAGE OF THE BENEFITS OF EARNING MORE POINTS"',
+                    '"OUR TRAVEL REWARD CARD OFFERS COMPREHENSIVE INSURANCE AND ACCESS TO AIRPORT LOUNGES."'
+                ]
+            }, {
+                condition: 'Mortgage / Home',
+                prompts: [
+                    '"ARE YOU PLANNING TO BUY A HOME THIS YEAR"',
+                    '"WERE YOU ABLE TO SECURE A GOOD RATE THIS YEAR FOR YOUR MORTGAGE"',
+                    '"CURRENTLY WE HAVE A PROMOTION THAT YOU CAN BENEFIT FROM IF YOU MOVE YOUR MORTGAGE"',
+                    '"WE OFFER MORTGAGE PRE-APPROVALS THAT ARE VALID FOR UP TO 120 DAYS."'
+                ]
+            }, {
+                condition: 'Student / Youth',
+                prompts: [
+                    '"IF YOU ARE A STUDENT, WE HAVE A NO-FEE CHEQUING ACCOUNT WITH AMAZING BENEFITS."',
+                    '"WE ALSO HAVE A STUDENT CREDIT CARD TO HELP YOU BUILD CREDIT RESPONSIBLY."'
+                ]
+            }, {
+                condition: 'Business Banking',
+                prompts: [
+                    '"I NOTICE YOU HAVE A BUSINESS. WE OFFER BUSINESS CREDIT CARDS WITH CUSTOMIZED REWARDS."',
+                    '"OUR BUSINESS TRANSACTION ACCOUNTS HAVE COMPETITIVE FEATURES TO SAVE YOU TIME."'
+                ]
+            }],
+            subCheckboxes: [
+                { id: 'star', label: 'Did we click the star for Advice & Opportunities?' },
+                { id: 'check_account', label: 'Did we check the account type & credit card type?' },
+                { id: 'check_activity', label: 'Did we check the activities in the account?' }
+            ]
+        }, {
+            id: 'w',
+            letter: 'W',
+            title: 'Wealth',
+            description: 'Registered accounts (TFSA, FHSA, RRSP, RESP, RDSP).',
+            prompts: [{
+                condition: 'General Wealth',
+                prompts: [
+                    '"DO YOU HAVE ANY PLANS FOR THE BALANCE SITTING IN YOUR SAVINGS ACCOUNT"',
+                    '"FOR THE TIME BEING SINCE YOU MENTIONED YOU WANTED TO BUY A HOME YOU CAN LEVERAGE THE TIME TO INVEST IN AN FHSA"',
+                    '"THE FHSA OFFERS TAX-DEDUCTIBLE CONTRIBUTIONS UP TO $8,000 PER YEAR."'
+                ]
+            }, {
+                condition: 'Children / RESP',
+                prompts: [
+                    '"DO YOU HAVE ANY CHILDREN? HAVE YOU HEARD ABOUT THE BENEFITS OF RESP BECAUSE THIS CAN BE A WIN-WIN SITUATION IF YOU STARTED EARLY"',
+                    '"THE GOVERNMENT MATCHES 20% OF YOUR RESP CONTRIBUTIONS UP TO $500 PER YEAR."'
+                ]
+            }, {
+                condition: 'RRSP',
+                prompts: [
+                    '"I SEE YOU HAVE NOT STARTED CONTRIBUTING TO YOUR RRSP YET MAY I KNOW WHY?"',
+                    '"RRSP CONTRIBUTIONS CAN REDUCE YOUR TAXABLE INCOME SIGNIFICANTLY."'
+                ]
+            }, {
+                condition: 'Retirement Planning',
+                prompts: [
+                    '"WHEN ARE YOU PLANNING TO RETIRE? WE CAN BUILD A CUSTOMIZED RETIREMENT INCOME PLAN."',
+                    '"HAVE YOU CONSIDERED THE TAX IMPLICATIONS OF YOUR RETIREMENT WITHDRAWALS?"'
+                ]
+            }, {
+                condition: 'Estate Planning',
+                prompts: [
+                    '"HAVE YOU UPDATED YOUR WILL AND BENEFICIARIES RECENTLY?"',
+                    '"WE OFFER TRUST SERVICES TO ENSURE YOUR ASSETS ARE DISTRIBUTED ACCORDING TO YOUR WISHES."'
+                ]
+            }],
+            subCheckboxes: [
+                { id: 'registered', label: 'Do they have any registered accounts with TD? (TFSA, FHSA, RRSP, RESP, RDSP)' }
+            ]
+        }, {
+            id: 't',
+            letter: 'T',
+            title: 'Thank You',
+            description: 'Gratitude, LEI pitch, heartfelt closing.',
+            prompts: [{
+                condition: 'Standard',
+                prompts: [
+                    '"THANK YOU FOR COMING IN TODAY. HAVE A FANTASTIC REST OF YOUR WEEK!"',
+                    '"I REALLY ENJOYED ASSISTING YOU. COULD YOU FILL OUT A QUICK SURVEY?"',
+                    '"IF YOU NEED ANYTHING ELSE, JUST REACH OUT. WE\'RE ALWAYS HERE."',
+                    '"IT WAS A PLEASURE! I\'LL SEND A FOLLOW-UP EMAIL WITH THE DETAILS."',
+                    '"THANK YOU FOR TRUSTING US WITH YOUR BUSINESS. SEE YOU SOON!"',
+                    '"YOUR LOYALTY MEANS A LOT TO US. WE APPRECIATE YOU."',
+                    '"HAVE A WONDERFUL DAY! I\'LL BE HERE IF YOU NEED ME."'
+                ]
+            }],
+            subCheckboxes: []
+        }];
+
+        // ================================================================
+        // 2. STATE MANAGEMENT
+        // ================================================================
+
+        let state = {
+            goals: [],
+            steps: {},
+            weather: 'sunny'
+        };
+
+        // customPrompts: { stepId: { scenarioIndex: [prompts] } }
+        // For auto-greeting, scenarioIndex is 'auto'
+        let customPrompts = {};
+        let activeTab = 'practice';
+
+        function loadState() {
+            const saved = localStorage.getItem('growthSessionState');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state.goals = parsed.goals || [];
+                    state.steps = parsed.steps || {};
+                    state.weather = parsed.weather || 'sunny';
+                } catch (e) { console.warn('Failed to parse saved state.'); }
+            }
+
+            const customSaved = localStorage.getItem('growthCustomPrompts_v2');
+            if (customSaved) {
+                try {
+                    customPrompts = JSON.parse(customSaved);
+                } catch (e) { console.warn('Failed to parse custom prompts.'); }
+            }
+
+            // Initialize customPrompts for all steps
+            STEPS.forEach(step => {
+                if (!customPrompts[step.id]) {
+                    customPrompts[step.id] = {};
+                }
+                // For non-auto steps, ensure each scenario has an array
+                if (!step.isAutoGreeting && step.prompts) {
+                    step.prompts.forEach((p, idx) => {
+                        if (!customPrompts[step.id][idx]) {
+                            customPrompts[step.id][idx] = [];
+                        }
+                    });
+                } else if (step.isAutoGreeting) {
+                    if (!customPrompts[step.id]['auto']) {
+                        customPrompts[step.id]['auto'] = [];
+                    }
+                }
+            });
+
+            // Ensure all steps exist in state
+            STEPS.forEach(step => {
+                if (!state.steps[step.id]) {
+                    state.steps[step.id] = {
+                        status: 'not-discussed',
+                        condition: '',
+                        subChecks: {},
+                        note: '',
+                        promptIndex: 0,
+                        expanded: false
+                    };
+                }
+                if (state.steps[step.id].promptIndex === undefined) {
+                    state.steps[step.id].promptIndex = 0;
+                }
+                if (state.steps[step.id].expanded === undefined) {
+                    state.steps[step.id].expanded = false;
+                }
+                if (!step.isAutoGreeting && step.prompts && step.prompts.length > 0) {
+                    if (state.steps[step.id].condition === '') {
+                        state.steps[step.id].condition = '0';
+                    }
+                }
+            });
+
+            document.getElementById('weatherSelect').value = state.weather;
+            updateWeatherIcon(state.weather);
+        }
+
+        function saveState() {
+            localStorage.setItem('growthSessionState', JSON.stringify({
+                goals: state.goals,
+                steps: state.steps,
+                weather: state.weather
+            }));
+            localStorage.setItem('growthCustomPrompts_v2', JSON.stringify(customPrompts));
+        }
+
+        function getStepData(stepId) {
+            if (!state.steps[stepId]) {
+                state.steps[stepId] = {
+                    status: 'not-discussed',
+                    condition: '',
+                    subChecks: {},
+                    note: '',
+                    promptIndex: 0,
+                    expanded: false
+                };
+            }
+            return state.steps[stepId];
+        }
+
+        // ================================================================
+        // 3. PROMPT MANAGEMENT – Merging Defaults + Custom (per scenario)
+        // ================================================================
+
+        function getAllPromptsForStep(stepId) {
+            const step = STEPS.find(s => s.id === stepId);
+            let defaultPrompts = [];
+            let scenarioKey = null;
+
+            if (step.isAutoGreeting) {
+                defaultPrompts = getAutoGreetingPrompts();
+                scenarioKey = 'auto';
+            } else if (step.prompts) {
+                const stepData = getStepData(stepId);
+                const conditionIdx = parseInt(stepData.condition, 10);
+                if (!isNaN(conditionIdx) && step.prompts[conditionIdx]) {
+                    defaultPrompts = step.prompts[conditionIdx].prompts || [];
+                    scenarioKey = conditionIdx;
+                }
+            }
+
+            const custom = (scenarioKey !== null && customPrompts[stepId] && customPrompts[stepId][scenarioKey]) ?
+                customPrompts[stepId][scenarioKey] :
+                [];
+
+            return [...defaultPrompts, ...custom];
+        }
+
+        // Get custom prompts for a specific step + scenario
+        function getCustomPromptsForScenario(stepId, scenarioIdx) {
+            if (customPrompts[stepId] && customPrompts[stepId][scenarioIdx]) {
+                return customPrompts[stepId][scenarioIdx];
+            }
+            return [];
+        }
+
+        // Add a custom prompt to a specific scenario
+        function addCustomPromptToScenario(stepId, scenarioIdx, text) {
+            if (!customPrompts[stepId]) customPrompts[stepId] = {};
+            if (!customPrompts[stepId][scenarioIdx]) customPrompts[stepId][scenarioIdx] = [];
+            customPrompts[stepId][scenarioIdx].push(text);
+            saveState();
+        }
+
+        // Delete a custom prompt from a specific scenario
+        function deleteCustomPromptFromScenario(stepId, scenarioIdx, text) {
+            if (!customPrompts[stepId] || !customPrompts[stepId][scenarioIdx]) return;
+            customPrompts[stepId][scenarioIdx] = customPrompts[stepId][scenarioIdx].filter(p => p !== text);
+            saveState();
+        }
+
+        // Reset all custom prompts for a step
+        function resetCustomPromptsForStep(stepId) {
+            const step = STEPS.find(s => s.id === stepId);
+            if (step.isAutoGreeting) {
+                customPrompts[stepId]['auto'] = [];
+            } else if (step.prompts) {
+                step.prompts.forEach((p, idx) => {
+                    customPrompts[stepId][idx] = [];
+                });
+            }
+            saveState();
+        }
+
+        // ================================================================
+        // 4. AUTO‑GREETING
+        // ================================================================
+
+        function getAutoGreetingPrompts() {
+            const hour = new Date().getHours();
+            let timeOfDay = 'Morning';
+            if (hour >= 12 && hour < 17) timeOfDay = 'Afternoon';
+            else if (hour >= 17) timeOfDay = 'Evening';
+
+            const weather = state.weather;
+            let prompts = [];
+
+            if (timeOfDay === 'Morning') {
+                prompts = [
+                    '"GOOD MORNING WELCOME TO TD!"',
+                    '"DID YOU DO ANYTHING LAST WEEKEND?"',
+                    '"ANY PLANS FOR THIS AFTERNOON"',
+                    '"ANY PLANS FOR THIS WEEKEND"'
+                ];
+            } else if (timeOfDay === 'Afternoon') {
+                prompts = [
+                    '"GOOD AFTERNOON! LUNCH TIME FOR YOU?"',
+                    '"LETS MAKE THIS QUICK"'
+                ];
+            } else {
+                prompts = [
+                    '"GOOD EVENING! HOW ARE YOU?"',
+                    '"MUST HAVE BEEN A LONG DAY FOR YOU?"'
+                ];
+            }
+
+            if (weather === 'rainy') prompts.push('"Looks like it\'s raining out there – stay dry!"');
+            else if (weather === 'cloudy') prompts.push('"It\'s a bit cloudy today, but we\'ll brighten your visit!"');
+            else prompts.push('"What a beautiful sunny day!"');
+
+            return prompts;
+        }
+
+        // ================================================================
+        // 5. RENDER FUNCTIONS
+        // ================================================================
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+
+            document.getElementById('practiceContainer').style.display = tab === 'practice' ? 'block' : 'none';
+            document.getElementById('libraryContainer').classList.toggle('active', tab === 'library');
+
+            if (tab === 'library') {
+                renderLibrary();
+            }
+        }
+
+        function renderGoals() {
+            const list = document.getElementById('goalsList');
+            list.innerHTML = '';
+            if (state.goals.length === 3) {
+                state.goals.forEach((goal, idx) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="num">${idx + 1}.</span> ${goal}`;
+                    list.appendChild(li);
+                });
+            } else {
+                list.innerHTML = '<li class="empty-goals">Set your 3 goals to begin.</li>';
+            }
+        }
+
+        // --- RENDER CHECKLIST ---
+        function renderChecklist() {
+            const container = document.getElementById('checklistContainer');
+            container.innerHTML = '';
+
+            STEPS.forEach((step) => {
+                const stepData = getStepData(step.id);
+                const status = stepData.status || 'not-discussed';
+                const selectedCondition = stepData.condition || '';
+                const subChecks = stepData.subChecks || {};
+                const note = stepData.note || '';
+                const promptIndex = stepData.promptIndex || 0;
+                const isExpanded = stepData.expanded || false;
+
+                const allPrompts = getAllPromptsForStep(step.id);
+                const currentPrompt = allPrompts.length > 0 ? allPrompts[Math.min(promptIndex, allPrompts.length - 1)] :
+                    'No prompts available.';
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.step = step.id;
+
+                const header = document.createElement('div');
+                header.className = 'card-header';
+                header.innerHTML = `
+                    <div class="letter letter-${step.id}">${step.letter}</div>
+                    <div class="info">
+                        <div class="title">${step.letter}. ${step.title}</div>
+                        <div class="sub">${step.description}</div>
+                    </div>
+                    <div class="status-toggle" role="radiogroup" aria-label="Status for ${step.title}">
+                        <input type="radio" name="status-${step.id}" id="ns-${step.id}" value="not-discussed" ${status === 'not-discussed' ? 'checked' : ''}>
+                        <label for="ns-${step.id}">Not Discussed</label>
+                        <input type="radio" name="status-${step.id}" id="att-${step.id}" value="attempted" ${status === 'attempted' ? 'checked' : ''}>
+                        <label for="att-${step.id}">Attempted</label>
+                        <input type="radio" name="status-${step.id}" id="ex-${step.id}" value="executed" ${status === 'executed' ? 'checked' : ''}>
+                        <label for="ex-${step.id}">Executed</label>
+                    </div>
+                `;
+                card.appendChild(header);
+
+                const details = document.createElement('div');
+                details.className = 'card-details';
+                if (isExpanded) details.classList.add('open');
+                details.id = `details-${step.id}`;
+
+                // Sub-checkboxes
+                if (step.subCheckboxes && step.subCheckboxes.length > 0) {
+                    const subDiv = document.createElement('div');
+                    subDiv.className = 'section';
+                    subDiv.innerHTML = `<div class="section-title">Did we…</div><div class="sub-checkboxes">`;
+                    step.subCheckboxes.forEach(cb => {
+                        const checked = subChecks[cb.id] || false;
+                        subDiv.innerHTML += `
+                            <label>
+                                <input type="checkbox" data-step="${step.id}" data-cb="${cb.id}" ${checked ? 'checked' : ''}>
+                                ${cb.label}
+                            </label>
+                        `;
+                    });
+                    subDiv.innerHTML += `</div>`;
+                    details.appendChild(subDiv);
+                }
+
+                // Prompts Section
+                const promptDiv = document.createElement('div');
+                promptDiv.className = 'section';
+
+                if (!step.isAutoGreeting && step.prompts && step.prompts.length > 0) {
+                    promptDiv.innerHTML = `<div class="section-title">Select Scenario</div>`;
+                    const selectDiv = document.createElement('div');
+                    selectDiv.className = 'prompt-group';
+                    const select = document.createElement('select');
+                    select.dataset.step = step.id;
+                    select.innerHTML = `<option value="">Select scenario…</option>`;
+                    step.prompts.forEach((p, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = idx;
+                        opt.textContent = p.condition;
+                        if (selectedCondition === String(idx)) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                    selectDiv.appendChild(select);
+                    promptDiv.appendChild(selectDiv);
+
+                    select.addEventListener('change', (e) => {
+                        const val = e.target.value;
+                        const stepId = e.target.dataset.step;
+                        const stepData = getStepData(stepId);
+                        stepData.condition = val;
+                        stepData.promptIndex = 0;
+                        saveState();
+                        renderAll();
+                    });
+                }
+
+                // Bubble
+                const bubbleWrapper = document.createElement('div');
+                bubbleWrapper.className = `prompt-bubble-wrapper ${step.isAutoGreeting ? 'auto' : ''}`;
+                bubbleWrapper.innerHTML = `
+                    <div class="bubble-avatar">${step.letter}</div>
+                    <div class="bubble-content">
+                        <span class="prompt-text">${currentPrompt}</span>
+                        <button class="next-prompt-btn" data-step="${step.id}" aria-label="Next prompt">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+                promptDiv.appendChild(bubbleWrapper);
+
+                const countLabel = document.createElement('div');
+                countLabel.style.cssText =
+                    'font-size: 12px; color: var(--gray-600); margin-top: 4px; text-align: right;';
+                const customCount = (() => {
+                    const stepData = getStepData(step.id);
+                    const scenarioKey = step.isAutoGreeting ? 'auto' : parseInt(stepData.condition, 10);
+                    if (!isNaN(scenarioKey) || step.isAutoGreeting) {
+                        const key = step.isAutoGreeting ? 'auto' : scenarioKey;
+                        return (customPrompts[step.id] && customPrompts[step.id][key]) ? customPrompts[step.id][key].length :
+                            0;
+                    }
+                    return 0;
+                })();
+                countLabel.textContent = `${allPrompts.length} prompts (${customCount} custom)`;
+                promptDiv.appendChild(countLabel);
+
+                details.appendChild(promptDiv);
+
+                // Notes
+                const notesDiv = document.createElement('div');
+                notesDiv.className = 'section notes-area';
+                notesDiv.innerHTML = `
+                    <div class="section-title">Notes</div>
+                    <textarea data-step="${step.id}" placeholder="Add your notes here…">${note}</textarea>
+                `;
+                details.appendChild(notesDiv);
+
+                card.appendChild(details);
+
+                // Toggle expanded
+                header.addEventListener('click', (e) => {
+                    if (e.target.closest('.status-toggle')) return;
+                    const isOpen = details.classList.toggle('open');
+                    const stepData = getStepData(step.id);
+                    stepData.expanded = isOpen;
+                    saveState();
+                });
+
+                // Status radios
+                const radios = header.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        if (e.target.checked) {
+                            const stepData = getStepData(step.id);
+                            stepData.status = e.target.value;
+                            saveState();
+                            renderMetrics();
+                        }
+                    });
+                });
+
+                // Sub-checkboxes
+                details.querySelectorAll('.sub-checkboxes input[type="checkbox"]').forEach(cb => {
+                    cb.addEventListener('change', (e) => {
+                        const stepId = e.target.dataset.step;
+                        const cbId = e.target.dataset.cb;
+                        const stepData = getStepData(stepId);
+                        if (!stepData.subChecks) stepData.subChecks = {};
+                        stepData.subChecks[cbId] = e.target.checked;
+                        saveState();
+                    });
+                });
+
+                // Notes
+                const noteTextarea = details.querySelector('textarea');
+                if (noteTextarea) {
+                    noteTextarea.addEventListener('change', (e) => {
+                        const stepId = e.target.dataset.step;
+                        const stepData = getStepData(stepId);
+                        stepData.note = e.target.value;
+                        saveState();
+                    });
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- RENDER METRICS ---
+        function renderMetrics() {
+            const stepIds = STEPS.map(s => s.id);
+            let executed = 0,
+                attempted = 0,
+                notDiscussed = 0;
+
+            stepIds.forEach(id => {
+                const data = getStepData(id);
+                const status = data.status || 'not-discussed';
+                if (status === 'executed') executed++;
+                else if (status === 'attempted') attempted++;
+                else notDiscussed++;
+            });
+
+            const total = stepIds.length;
+            const execRate = total === 0 ? 0 : Math.round((executed / total) * 100);
+
+            document.getElementById('executedCount').textContent = executed;
+            document.getElementById('attemptedCount').textContent = attempted;
+            document.getElementById('notDiscussedCount').textContent = notDiscussed;
+            document.getElementById('executionRate').textContent = execRate + '%';
+
+            const heartFill = document.getElementById('heartFill');
+            const heartText = document.getElementById('heartText');
+            const heartContainer = document.querySelector('.heart-container');
+
+            const clipValue = 100 - execRate;
+            heartFill.style.clipPath = `inset(${clipValue}% 0 0 0)`;
+            heartText.textContent = execRate + '%';
+
+            if (execRate === 100 && total > 0) {
+                heartContainer.classList.add('beating');
+            } else {
+                heartContainer.classList.remove('beating');
+            }
+        }
+
+        // --- RENDER LIBRARY ---
+        function renderLibrary() {
+            const container = document.getElementById('libraryContainer');
+            container.innerHTML = '';
+
+            // Step + Scenario dropdowns
+            const controls = document.createElement('div');
+            controls.className = 'library-controls';
+
+            const stepSelect = document.createElement('select');
+            stepSelect.id = 'libraryStepSelect';
+            STEPS.forEach(step => {
+                const opt = document.createElement('option');
+                opt.value = step.id;
+                opt.textContent = `${step.letter}. ${step.title}`;
+                stepSelect.appendChild(opt);
+            });
+
+            const scenarioSelect = document.createElement('select');
+            scenarioSelect.id = 'libraryScenarioSelect';
+
+            controls.appendChild(stepSelect);
+            controls.appendChild(scenarioSelect);
+            container.appendChild(controls);
+
+            // Content area
+            const content = document.createElement('div');
+            content.id = 'libraryContent';
+            container.appendChild(content);
+
+            // Populate scenarios when step changes
+            function populateScenarios(stepId) {
+                const step = STEPS.find(s => s.id === stepId);
+                scenarioSelect.innerHTML = '';
+                if (step.isAutoGreeting) {
+                    const opt = document.createElement('option');
+                    opt.value = 'auto';
+                    opt.textContent = 'Auto‑Greeting';
+                    scenarioSelect.appendChild(opt);
+                } else if (step.prompts) {
+                    step.prompts.forEach((p, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = idx;
+                        opt.textContent = p.condition;
+                        scenarioSelect.appendChild(opt);
+                    });
+                }
+                renderLibraryForStep(stepId, scenarioSelect.value);
+            }
+
+            stepSelect.addEventListener('change', () => {
+                populateScenarios(stepSelect.value);
+            });
+
+            scenarioSelect.addEventListener('change', () => {
+                renderLibraryForStep(stepSelect.value, scenarioSelect.value);
+            });
+
+            // Initial load
+            const firstStep = STEPS[0].id;
+            stepSelect.value = firstStep;
+            populateScenarios(firstStep);
+        }
+
+        function renderLibraryForStep(stepId, scenarioIdx) {
+            const container = document.getElementById('libraryContent');
+            const step = STEPS.find(s => s.id === stepId);
+            if (!step) return;
+
+            container.innerHTML = '';
+
+            // Title
+            const title = document.createElement('h3');
+            title.style.cssText = 'font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #0f172a;';
+            const scenarioLabel = step.isAutoGreeting ? 'Auto-Greeting' :
+                (step.prompts && step.prompts[scenarioIdx] ? step.prompts[scenarioIdx].condition : 'Unknown');
+            title.textContent = `${step.letter}. ${step.title} – ${scenarioLabel}`;
+            container.appendChild(title);
+
+            // Prompt list
+            const list = document.createElement('div');
+            list.className = 'prompt-list';
+
+            let defaultPrompts = [];
+            if (step.isAutoGreeting) {
+                defaultPrompts = getAutoGreetingPrompts();
+            } else if (step.prompts && step.prompts[scenarioIdx]) {
+                defaultPrompts = step.prompts[scenarioIdx].prompts || [];
+            }
+
+            const custom = getCustomPromptsForScenario(stepId, scenarioIdx);
+
+            const allPrompts = [...defaultPrompts, ...custom];
+
+            if (allPrompts.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'library-empty';
+                empty.textContent = 'No prompts for this scenario. Add one below!';
+                list.appendChild(empty);
+            } else {
+                allPrompts.forEach((prompt) => {
+                    const item = document.createElement('div');
+                    item.className = 'prompt-item';
+
+                    const isDefault = defaultPrompts.includes(prompt);
+                    const isCustom = custom.includes(prompt);
+
+                    const text = document.createElement('span');
+                    text.className = 'text';
+                    text.textContent = prompt;
+
+                    const badge = document.createElement('span');
+                    if (isDefault && !isCustom) {
+                        badge.className = 'badge-default';
+                        badge.textContent = 'Default';
+                    } else if (isCustom) {
+                        badge.className = 'badge-custom';
+                        badge.textContent = 'Custom';
+                    }
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteBtn.style.display = isCustom ? 'block' : 'none';
+                    if (isCustom) {
+                        deleteBtn.addEventListener('click', () => {
+                            deleteCustomPromptFromScenario(stepId, scenarioIdx, prompt);
+                            renderLibraryForStep(stepId, scenarioIdx);
+                            if (activeTab === 'practice') renderAll();
+                        });
+                    }
+
+                    item.appendChild(text);
+                    item.appendChild(badge);
+                    item.appendChild(deleteBtn);
+                    list.appendChild(item);
+                });
+            }
+            container.appendChild(list);
+
+            // Add prompt area
+            const addArea = document.createElement('div');
+            addArea.className = 'add-prompt-area';
+            addArea.innerHTML = `
+                <input type="text" id="newPromptInput" placeholder="Enter a new prompt…" />
+                <button class="btn" id="addPromptBtn">Add Prompt</button>
+                <button class="btn btn-outline" id="resetDefaultsBtn">Reset Custom</button>
+            `;
+            container.appendChild(addArea);
+
+            const input = addArea.querySelector('#newPromptInput');
+            const addBtn = addArea.querySelector('#addPromptBtn');
+            const resetBtn = addArea.querySelector('#resetDefaultsBtn');
+
+            addBtn.addEventListener('click', () => {
+                const text = input.value.trim();
+                if (text) {
+                    addCustomPromptToScenario(stepId, scenarioIdx, text);
+                    input.value = '';
+                    renderLibraryForStep(stepId, scenarioIdx);
+                    if (activeTab === 'practice') renderAll();
+                }
+            });
+
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addBtn.click();
+            });
+
+            resetBtn.addEventListener('click', () => {
+                const step = STEPS.find(s => s.id === stepId);
+                const label = step.isAutoGreeting ? 'Auto-Greeting' :
+                    (step.prompts && step.prompts[scenarioIdx] ? step.prompts[scenarioIdx].condition : 'this scenario');
+                if (confirm(`Remove all custom prompts for "${label}"?`)) {
+                    if (!customPrompts[stepId]) customPrompts[stepId] = {};
+                    customPrompts[stepId][scenarioIdx] = [];
+                    saveState();
+                    renderLibraryForStep(stepId, scenarioIdx);
+                    if (activeTab === 'practice') renderAll();
+                }
+            });
+        }
+
+        // ================================================================
+        // 6. BUSINESS LOGIC
+        // ================================================================
+
+        function updateWeatherIcon(weather) {
+            const icon = document.getElementById('weatherIcon');
+            if (weather === 'sunny') icon.className = 'fas fa-sun';
+            else if (weather === 'rainy') icon.className = 'fas fa-cloud-rain';
+            else if (weather === 'cloudy') icon.className = 'fas fa-cloud';
+        }
+
+        function showModal(show) {
+            document.getElementById('goalsModal').classList.toggle('hidden', !show);
+        }
+
+        function setGoals(goal1, goal2, goal3) {
+            state.goals = [goal1.trim(), goal2.trim(), goal3.trim()];
+            state.steps = {};
+            STEPS.forEach(step => {
+                let condition = '';
+                if (!step.isAutoGreeting && step.prompts && step.prompts.length > 0) {
+                    condition = '0';
+                }
+                state.steps[step.id] = {
+                    status: 'not-discussed',
+                    condition: condition,
+                    subChecks: {},
+                    note: '',
+                    promptIndex: 0,
+                    expanded: false
+                };
+            });
+            saveState();
+            showModal(false);
+            renderAll();
+        }
+
+        function restartSession() {
+            if (state.goals.length !== 3) {
+                alert('Please set your 3 goals first.');
+                return;
+            }
+            if (!confirm('Restart for the next customer? This will reset all step progress but keep your goals.')) {
+                return;
+            }
+            STEPS.forEach(step => {
+                const stepData = getStepData(step.id);
+                stepData.status = 'not-discussed';
+                stepData.subChecks = {};
+                stepData.note = '';
+                stepData.promptIndex = 0;
+                stepData.expanded = false;
+                if (!step.isAutoGreeting && step.prompts && step.prompts.length > 0 && stepData.condition === '') {
+                    stepData.condition = '0';
+                }
+            });
+            saveState();
+            renderAll();
+        }
+
+        function exportCSV() {
+            if (state.goals.length !== 3) {
+                alert('Please set your 3 goals first.');
+                return;
+            }
+
+            const headers = ['Goal', 'Step', 'Status', 'Condition', 'Sub-Checkboxes', 'Notes'];
+            const rows = [];
+
+            state.goals.forEach((goal, idx) => {
+                rows.push([`Goal ${idx + 1}`, goal, '', '', '', '']);
+            });
+            rows.push(['---', '---', '---', '---', '---', '---']);
+
+            STEPS.forEach(step => {
+                const data = getStepData(step.id);
+                const status = data.status || 'not-discussed';
+                const condition = data.condition || '';
+                const subChecks = data.subChecks || {};
+                const subLabels = Object.keys(subChecks)
+                    .filter(k => subChecks[k])
+                    .map(k => {
+                        const found = step.subCheckboxes.find(cb => cb.id === k);
+                        return found ? found.label : k;
+                    }).join('; ');
+                const note = data.note || '';
+                rows.push(['', `${step.letter}. ${step.title}`, status, condition, subLabels, note]);
+            });
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                const escaped = row.map(cell => `"${cell}"`);
+                csv += escaped.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `GROWTH_session_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- Next Prompt ---
+        function handleNextPrompt(e) {
+            const btn = e.target.closest('.next-prompt-btn');
+            if (!btn) return;
+            e.stopPropagation();
+
+            const stepId = btn.dataset.step;
+            const stepData = getStepData(stepId);
+            const allPrompts = getAllPromptsForStep(stepId);
+
+            if (allPrompts.length > 0) {
+                let currentIdx = stepData.promptIndex || 0;
+                let newIdx = Math.floor(Math.random() * allPrompts.length);
+                if (allPrompts.length > 1) {
+                    while (newIdx === currentIdx) {
+                        newIdx = Math.floor(Math.random() * allPrompts.length);
+                    }
+                }
+                stepData.promptIndex = newIdx;
+                saveState();
+
+                const bubbleWrapper = btn.closest('.prompt-bubble-wrapper');
+                const textSpan = bubbleWrapper.querySelector('.prompt-text');
+                if (textSpan) {
+                    textSpan.textContent = allPrompts[newIdx];
+                }
+            }
+        }
+
+        // ================================================================
+        // 7. FULL RENDER
+        // ================================================================
+
+        function renderAll() {
+            renderGoals();
+            if (activeTab === 'practice') {
+                renderChecklist();
+            } else {
+                renderLibrary();
+            }
+            renderMetrics();
+            saveState();
+        }
+
+        // ================================================================
+        // 8. INIT & EVENT BINDING
+        // ================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+
+            const startBtn = document.getElementById('startGrowthBtn');
+            const goal1 = document.getElementById('goal1');
+            const goal2 = document.getElementById('goal2');
+            const goal3 = document.getElementById('goal3');
+
+            function checkGoalsFilled() {
+                startBtn.disabled = !(goal1.value.trim() && goal2.value.trim() && goal3.value.trim());
+            }
+            goal1.addEventListener('input', checkGoalsFilled);
+            goal2.addEventListener('input', checkGoalsFilled);
+            goal3.addEventListener('input', checkGoalsFilled);
+
+            startBtn.addEventListener('click', () => {
+                if (goal1.value.trim() && goal2.value.trim() && goal3.value.trim()) {
+                    setGoals(goal1.value, goal2.value, goal3.value);
+                }
+            });
+            goal3.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !startBtn.disabled) startBtn.click();
+            });
+
+            document.getElementById('weatherSelect').addEventListener('change', (e) => {
+                state.weather = e.target.value;
+                updateWeatherIcon(state.weather);
+                saveState();
+                renderAll();
+            });
+
+            document.getElementById('restartBtn').addEventListener('click', restartSession);
+            document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+            document.addEventListener('click', handleNextPrompt);
+
+            if (state.goals.length === 3) {
+                showModal(false);
+                renderAll();
+            } else {
+                showModal(true);
+                renderAll();
+            }
+
+            console.log('✅ GROWTH Dashboard – Library now supports per‑scenario custom prompts.');
+            console.log('📚 Select a step, then a scenario, and add prompts directly to that scenario.');
+            window.__app = { state, STEPS, customPrompts, renderAll, restartSession, exportCSV };
+        });
+    </script>
+
+</body>
+</html>
