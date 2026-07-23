@@ -363,7 +363,40 @@
             border-radius: 20px;
             margin-left: 0.2rem;
         }
-        .meal-card .tennis-addon {
+        .meal-card .prep-note {
+            font-size: 0.75rem;
+            color: #6bcb9a;
+            margin-top: 0.5rem;
+            border-top: 1px solid #1c2128;
+            padding-top: 0.4rem;
+            background: #1c2128;
+            border-radius: 0.4rem;
+            padding: 0.3rem 0.6rem;
+        }
+        .meal-card .prep-note strong {
+            color: #f0c674;
+        }
+
+        .meal-prep-guide {
+            grid-column: 1 / -1;
+            background: #1c2128;
+            border-radius: 1rem;
+            padding: 1rem 1.4rem;
+            border: 1px solid #2d333b;
+            margin-bottom: 0.5rem;
+        }
+        .meal-prep-guide h4 {
+            color: #f0c674;
+            margin-bottom: 0.3rem;
+        }
+        .meal-prep-guide ul {
+            list-style: disc;
+            padding-left: 1.4rem;
+            color: #b1bac4;
+            font-size: 0.9rem;
+        }
+
+        .tennis-addon {
             background: #1c2128;
             padding: 0.5rem 0.8rem;
             border-radius: 0.6rem;
@@ -371,15 +404,8 @@
             font-size: 0.85rem;
             border: 1px dashed #2d333b;
         }
-        .meal-card .tennis-addon strong {
+        .tennis-addon strong {
             color: #f0c674;
-        }
-        .meal-card .meal-note {
-            font-size: 0.75rem;
-            color: #8b949e;
-            margin-top: 0.4rem;
-            border-top: 1px solid #1c2128;
-            padding-top: 0.4rem;
         }
 
         /* Workout cards */
@@ -642,14 +668,14 @@
             <button class="reset-btn" id="resetGroceries">⟳ Reset all items & alternatives</button>
         </div>
 
-        <!-- ================== TAB 2: MEAL PLAN ================== -->
+        <!-- ================== TAB 2: MEAL PLAN (PREP-FRIENDLY) ================== -->
         <div id="mealplan" class="tab-content">
             <div class="macro-summary" style="margin-bottom:1.5rem;">
                 <div class="macro-item"><span class="label">🔥 Daily</span><span class="value cals">2,500 kcal</span></div>
                 <div class="macro-item"><span class="label">💪 P</span><span class="value protein">200g</span></div>
                 <div class="macro-item"><span class="label">🍚 C</span><span class="value carbs">260g</span></div>
                 <div class="macro-item"><span class="label">🥑 F</span><span class="value fats">70g</span></div>
-                <div class="macro-note">⏰ timing: carbs around workout / tennis</div>
+                <div class="macro-note">⏰ 4 meals · batch prep 2×/week</div>
             </div>
             <div id="meal-container"></div>
             <button class="reset-btn" id="resetMeals">⟳ Reset all meal alternatives</button>
@@ -726,7 +752,7 @@
             </div>
         </div>
 
-        <!-- ================== TAB 4: HOME WORKOUT (UPDATED FOR YOUR GEAR) ================== -->
+        <!-- ================== TAB 4: HOME WORKOUT ================== -->
         <div id="home" class="tab-content">
             <div class="workout-grid" style="grid-template-columns:1fr;">
                 <div class="workout-card">
@@ -792,7 +818,7 @@
                 </div>
             </div>
             <div class="footer-tip">
-                <strong>🧠 Home + tennis rule:</strong> Since you have solid equipment, push the weights hard – aim to hit failure in the 8‑12 rep range. 
+                <strong>🧠 Home + tennis rule:</strong> Since you have solid equipment, push the weights hard – aim to hit failure in the 8‑12 rep range.
                 Use the pull‑up progression guide to finally unlock your first rep!
             </div>
         </div>
@@ -906,72 +932,62 @@
         });
 
         // ============================================================
-        //  MEAL PLAN DATA & RENDER
+        //  MEAL PLAN DATA (PREP-FRIENDLY, 4 MEALS)
         // ============================================================
         const mealData = [{
             id: 'meal1',
-            title: '🌅 Meal 1 (7:30 AM)',
-            kcal: '~400 kcal',
+            title: '🌅 Breakfast (Overnight Oats)',
+            kcal: '~420 kcal',
             items: [
-                { name: 'Rolled Oats (50g)', alts: ['Cream of Wheat', 'Buckwheat', 'Grits'], macro: '35g C' },
-                { name: 'Whey Protein (1 scoop)', alts: ['2 whole eggs', 'Cottage Cheese (150g)'], macro: '24g P' },
-                { name: 'Berries (100g)', alts: ['Apple (1 med)', 'Orange', 'Pineapple'], macro: '10g C' },
-                { name: 'Almonds (10g)', alts: ['Walnuts', 'Pecans', 'Flaxseed'], macro: '6g F' },
+                { name: 'Rolled Oats (60g)', alts: ['Cream of Wheat', 'Buckwheat'], macro: '40g C' },
+                { name: 'Whey Protein (1.5 scoops)', alts: ['2 whole eggs + egg whites'], macro: '36g P' },
+                { name: 'Berries (120g)', alts: ['Apple (1)', 'Orange'], macro: '15g C' },
+                { name: 'Almonds (12g)', alts: ['Walnuts', 'Pecans'], macro: '7g F' },
             ],
-            note: 'Swap: oats → cream of wheat, whey → eggs'
+            prepNote: '🥣 Prep 4 jars on Sunday – mix oats, whey, berries, and water/milk. Grab & eat cold.'
         }, {
             id: 'meal2',
-            title: '🍗 Meal 2 (11:00 AM)',
-            kcal: '~480 kcal',
+            title: '🍗 Lunch (Chicken + Rice + Broccoli)',
+            kcal: '~550 kcal',
             items: [
-                { name: 'Chicken Breast (170g cooked)', alts: ['Turkey Breast', 'Lean Ground Beef', 'Tofu'], macro: '40g P' },
-                { name: 'White Rice (200g cooked)', alts: ['Brown Rice', 'Quinoa', 'Couscous'], macro: '52g C' },
-                { name: 'Broccoli (100g)', alts: ['Asparagus', 'Green Beans', 'Cauliflower'], macro: 'micros' },
-                { name: 'Olive Oil (1 tsp)', alts: ['Avocado Oil', 'Coconut Oil'], macro: '5g F' },
+                { name: 'Chicken Breast (180g cooked)', alts: ['Turkey Breast', 'Lean Ground Beef'], macro: '42g P' },
+                { name: 'White Rice (220g cooked)', alts: ['Brown Rice', 'Quinoa'], macro: '58g C' },
+                { name: 'Broccoli (120g)', alts: ['Asparagus', 'Green Beans'], macro: 'micros' },
+                { name: 'Olive Oil (1 tsp)', alts: ['Avocado Oil'], macro: '5g F' },
             ],
-            note: 'Swap: chicken → turkey / beef, rice → quinoa'
+            prepNote: '📦 Make 6 containers (Mon‑Wed) – cook rice, grill chicken, steam broccoli. Reheat for lunch.'
         }, {
             id: 'meal3',
-            title: '⚡ Meal 3 (2:00 PM)',
-            kcal: '~520 kcal',
+            title: '⚡ Dinner (Beef + Sweet Potato + Veg)',
+            kcal: '~580 kcal',
             items: [
-                { name: 'Lean Ground Beef (150g, 93/7)', alts: ['Salmon Fillet', 'Chicken Thigh (boneless)'], macro: '34g P' },
-                { name: 'Sweet Potato (250g baked)', alts: ['White Potato', 'Plantain', 'Pumpkin'], macro: '50g C' },
-                { name: 'Asparagus (100g)', alts: ['Green Beans', 'Zucchini', 'Bell Peppers'], macro: 'micros' },
-                { name: 'Avocado Oil (1 tbsp)', alts: ['Olive Oil', 'Macadamia Oil'], macro: '14g F' },
+                { name: 'Lean Ground Beef (160g, 93/7)', alts: ['Salmon Fillet', 'Chicken Thigh'], macro: '38g P' },
+                { name: 'Sweet Potato (270g baked)', alts: ['White Potato', 'Plantain'], macro: '52g C' },
+                { name: 'Asparagus (100g)', alts: ['Zucchini', 'Bell Peppers'], macro: 'micros' },
+                { name: 'Avocado Oil (1 tbsp)', alts: ['Olive Oil'], macro: '14g F' },
             ],
-            note: 'Swap: beef → salmon / tofu, sweet potato → white potato'
+            prepNote: '📦 Make 4 containers (Wed‑Sat) – cook beef, roast sweet potato & veg. Reheat for dinner.'
         }, {
             id: 'meal4',
-            title: '🌙 Meal 4 (6:30 PM)',
-            kcal: '~460 kcal',
+            title: '🥛 Evening Snack (No Cook)',
+            kcal: '~300 kcal',
             items: [
-                { name: 'White Fish (200g cod/tilapia)', alts: ['Lean Pork', '4 whole eggs', 'Tofu'], macro: '38g P' },
-                { name: 'Brown Rice (150g cooked)', alts: ['Whole Wheat Pasta', 'Quinoa', 'Barley'], macro: '38g C' },
-                { name: 'Mixed Salad (large)', alts: ['Spinach', 'Kale', 'Arugula'], macro: 'micros' },
-                { name: 'Olive Oil (1 tbsp)', alts: ['Avocado Oil', 'Hemp Oil'], macro: '14g F' },
+                { name: '0% Greek Yogurt (200g)', alts: ['Cottage Cheese', 'Skyr'], macro: '20g P' },
+                { name: 'Almonds / Walnuts (25g)', alts: ['Chia Seeds', 'Pumpkin Seeds'], macro: '16g F, 5g C' },
+                { name: 'Casein Protein (1 scoop, optional)', alts: ['Whey Protein'], macro: '24g P' },
             ],
-            note: 'Swap: fish → lean pork, rice → couscous'
-        }, {
-            id: 'meal5',
-            title: '🥛 Meal 5 (9:00 PM)',
-            kcal: '~320 kcal',
-            items: [
-                { name: '0% Greek Yogurt (200g)', alts: ['Cottage Cheese', 'Skyr', 'Kefir'], macro: '20g P' },
-                { name: 'Almonds / Walnuts (30g)', alts: ['Chia Seeds', 'Pumpkin Seeds', 'Pecans'], macro: '18g F, 6g C' },
-                { name: 'Casein Protein (1 scoop, optional)', alts: ['Whey Protein', 'Plant Protein'], macro: '24g P' },
-            ],
-            note: 'Swap: yogurt → cottage cheese, nuts → seeds'
+            prepNote: '🧊 No cooking – just grab yogurt, nuts, and scoop of casein. Eat before bed.'
         }];
 
+        // Tennis add-on (static)
         const tennisMeal = {
             title: '🎾 Tennis Day Add‑on',
             kcal: '~200 kcal',
             items: [
-                { name: 'Banana (1 med) — pre-tennis', alts: ['Apple', 'Granola Bar', 'Orange'], macro: '27g C' },
-                { name: 'Whey Protein (1 scoop) — post-tennis', alts: ['Plant Protein', '2 eggs', 'Greek Yogurt'], macro: '24g P' },
+                { name: 'Banana (1 med) — pre-tennis', alts: ['Apple', 'Granola Bar'], macro: '27g C' },
+                { name: 'Whey Protein (1 scoop) — post-tennis', alts: ['Plant Protein', '2 eggs'], macro: '24g P' },
             ],
-            note: '✅ No extra calories needed – stick to 2,500 total. This replaces a small snack.'
+            prepNote: '🍌 Keep bananas & protein powder ready – no prep needed.'
         };
 
         let mealState = {};
@@ -994,6 +1010,20 @@
             const container = document.getElementById('meal-container');
             if (!container) return;
             let html = '<div class="meal-grid">';
+
+            // Prep guide at the top (spans full width)
+            html += `
+                <div class="meal-prep-guide">
+                    <h4>📅 Weekly Meal Prep Strategy</h4>
+                    <ul>
+                        <li><strong>Sunday:</strong> Cook 6 portions of chicken + rice + broccoli (Meal 2).</li>
+                        <li><strong>Sunday:</strong> Prep 4 jars of overnight oats (Meal 1).</li>
+                        <li><strong>Wednesday:</strong> Cook 4 portions of beef + sweet potato + veg (Meal 3).</li>
+                        <li><strong>Every day:</strong> Grab yogurt & nuts (Meal 4) – no cooking needed.</li>
+                        <li><strong>Tennis days:</strong> Add banana pre + shake post (see card below).</li>
+                    </ul>
+                </div>
+            `;
 
             mealData.forEach(meal => {
                 html += `<div class="meal-card"><h4>${meal.title} <span>${meal.kcal}</span></h4>`;
@@ -1019,11 +1049,13 @@
                     `;
                 });
                 html += `</ul>`;
-                if (meal.note) html += `<div class="meal-note">${meal.note}</div>`;
+                if (meal.prepNote) {
+                    html += `<div class="prep-note"><strong>🧑‍🍳 Prep:</strong> ${meal.prepNote}</div>`;
+                }
                 html += `</div>`;
             });
 
-            // Tennis card
+            // Tennis add-on card
             html += `<div class="meal-card" style="border-left-color:#6bcb9a;">
                 <h4>${tennisMeal.title} <span>${tennisMeal.kcal}</span></h4>
                 <ul class="meal-item-list">`;
@@ -1048,12 +1080,15 @@
                 `;
             });
             html += `</ul>`;
-            if (tennisMeal.note) html += `<div class="meal-note">${tennisMeal.note}</div>`;
+            if (tennisMeal.prepNote) {
+                html += `<div class="prep-note"><strong>🧑‍🍳 Prep:</strong> ${tennisMeal.prepNote}</div>`;
+            }
             html += `</div>`;
 
             html += `</div>`;
             container.innerHTML = html;
 
+            // Event listeners
             container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
                 cb.addEventListener('change', function() {
                     const key = this.dataset.key;
